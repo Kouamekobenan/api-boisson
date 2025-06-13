@@ -48,12 +48,11 @@ export class ProductController {
     private readonly paginateProductUseCase: PaginateProductUseCase,
   ) {}
 
-  @Post(':id')
+  @Post()
   @ApiOperation({
     summary: 'Créer un produit',
     description: 'Crée un nouveau produit pour un fournisseur donné.',
   })
-  @ApiParam({ name: 'id', type: String, description: 'ID du fournisseur' })
   @ApiBody({ type: ProductDto, description: 'Données du produit à créer' })
   @ApiResponse({
     status: 201,
@@ -63,10 +62,9 @@ export class ProductController {
   @ApiResponse({ status: 400, description: 'Requête invalide' })
   @ApiResponse({ status: 500, description: 'Erreur serveur' })
   async createProduct(
-    @Param('id') supplierId: string,
     @Body() dataProduct: ProductDto,
   ): Promise<ProductEntity> {
-    return await this.createProductUseCase.execute(supplierId, dataProduct);
+    return await this.createProductUseCase.execute(dataProduct);
   }
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les produits' })

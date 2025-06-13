@@ -20,10 +20,19 @@ model Product {
   stockMovements   StockMovement[]
   deliveryProducts DeliveryProduct[]
   orderItems       OrderItem[]
+  categoryProductId String?
+  categoryProduct   CategoryProduct? @relation(fields: [categoryProductId], references: [id], onDelete: SetNull)
   createdAt        DateTime             @default(now())
   updatedAt        DateTime             @updatedAt
 }
 
+model CategoryProduct {
+  id        String    @id @default(uuid())
+  name      String    @unique
+  products  Product[] // Relation avec les produits
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+}
 
 model DeliveryProduct {
   id          String   @id @default(uuid())
@@ -31,9 +40,9 @@ model DeliveryProduct {
   delivery    Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
   productId   String
   product     Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity    Int      // Quantité du produit livré
-  deliveredQuantity Int     @default(0) // Quantité effectivement livrée, valeur par défaut = 0
-  returnedQuantity Int     @default(0) // Quantité retournée, valeur par défaut = 0
+  quantity    Decimal      // Quantité du produit livré
+  deliveredQuantity Decimal     @default(0) // Quantité effectivement livrée, valeur par défaut = 0
+  returnedQuantity Decimal     @default(0) // Quantité retournée, valeur par défaut = 0
   createdAt   DateTime @default(now())
   @@unique([deliveryId, productId]) // Une même livraison ne peut avoir un produit qu'une seule fois
 }
@@ -53,7 +62,7 @@ model StockMovement {
   productId  String
   product    Product     @relation(fields: [productId], references: [id])
   type       StockType
-  quantity   Int
+  quantity   Decimal
   createdAt  DateTime    @default(now())
   deliveryId String?     // Lien vers une livraison spécifique
   delivery   Delivery?   @relation("StockMovementDelivery", fields: [deliveryId], references: [id]) // Nom de relation explicite
@@ -148,7 +157,7 @@ model OrderItem {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
   productId String
   product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity  Int
+  quantity  Decimal
   unitPrice Decimal
   totalPrice Decimal
 }

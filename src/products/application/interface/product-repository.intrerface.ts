@@ -3,7 +3,7 @@ import { ProductDto } from '../dtos/product-dto.dto';
 import { ProductByDto } from '../dtos/product-by-dto';
 import { FilterProductDto } from '../dtos/filtrage-product.dto';
 export interface IProductRepository {
-  createProduct(supplierId: string, data: ProductDto): Promise<ProductEntity>;
+  createProduct(data: ProductDto): Promise<ProductEntity>;
   byProduct(productId: string, quantity: number): Promise<ProductEntity>;
   findAllProduct(): Promise<ProductEntity[]>;
   updateProcut(

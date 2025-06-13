@@ -18,4 +18,16 @@ export class ProductDto {
 
   @ApiProperty({ example: 100, description: 'Quantité en stock du produit' })
   stock: number;
+  @ApiProperty({
+    example: 'fa2c9f3e-1c6e-4b7e-b320-4e24685c97f4',
+    description: 'ID du fournisseur',
+    required: false,
+  })
+  supplierId: string;
+  @ApiProperty({
+    example: 'fa2c9f3e-1c6e-4b7e-b320-4e24685c97f4',
+    description: 'ID de la catégorie du produit (peut être null)',
+    required: false,
+  })
+  categoryProductId?: string;
 }

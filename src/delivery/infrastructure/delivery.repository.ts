@@ -12,6 +12,7 @@ import { IDeliveryRepository } from '../application/interface/delivery-repositor
 import { UpdateDeliveryDto } from '../application/dtos/update-delivery-dto.dto';
 import { BaseExceptionFilter } from '@nestjs/core';
 import { DeliveryStatus } from '../domain/enums/deliveryStatus.enums';
+import { toSafeNumber } from 'src/common/number/conversion';
 
 @Injectable()
 export class DeliveryRepository implements IDeliveryRepository {
@@ -130,8 +131,8 @@ export class DeliveryRepository implements IDeliveryRepository {
       // Ajout du champ totalPrice
       const result = delivery.map((data) => {
         const totalPrice = data.deliveryProducts.reduce((sum, dp) => {
-          const price = dp.product.price.toNumber();
-          return sum + price * dp.quantity;
+          const price = dp.product.price;
+          return sum + price.toNumber() * toSafeNumber(dp.quantity);
         }, 0);
 
         const domainData = this.mapper.toDomain(data) as Delivery & {
@@ -305,7 +306,7 @@ export class DeliveryRepository implements IDeliveryRepository {
 
         if (
           deliveredQuantity + returnedQuantity !==
-          originalProductDelivery.quantity
+          toSafeNumber(originalProductDelivery.quantity)
         ) {
           throw new BadRequestException(
             `Erreur sur le produit ${product.getProductId()} : les quantités livrées et retournées ne correspondent pas à la quantité sortie.`,
@@ -376,7 +377,9 @@ export class DeliveryRepository implements IDeliveryRepository {
         await this.prisma.product.update({
           where: { id: deliveryProduct.productId },
           data: {
-            stock: { increment: deliveryProduct.quantity }, // Ajouter la quantité au stock
+            stock: {
+              increment: toSafeNumber(deliveryProduct.quantity),
+            }, // Ajouter la quantité au stock
           },
         });
       }

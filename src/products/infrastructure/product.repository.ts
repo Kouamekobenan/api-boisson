@@ -11,6 +11,7 @@ import { IProductRepository } from '../application/interface/product-repository.
 import { ProductDto } from '../application/dtos/product-dto.dto';
 import { ProductEntity } from '../domain/entities/product.entity';
 import { FilterProductDto } from '../application/dtos/filtrage-product.dto';
+import { UpdateProductDto } from '../application/dtos/update-dto.product-dto';
 
 @Injectable()
 export class ProductRepository implements IProductRepository {
@@ -19,27 +20,13 @@ export class ProductRepository implements IProductRepository {
     private readonly prisma: PrismaService,
     private readonly mapper: ProductMapper,
   ) {}
-  async createProduct(
-    supplierId: string,
-    data: ProductDto,
-  ): Promise<ProductEntity> {
-    const supplier = await this.prisma.supplier.findUnique({
-      where: { id: supplierId },
-    });
-    if (!supplier) {
-      throw new BadGatewayException(`supplier dos'nt exist: ${supplierId}`);
-    }
+  async createProduct(data: ProductDto): Promise<ProductEntity> {
     try {
-      const dataTosend = this.mapper.toSend(data);
+      const dataTosend = this.mapper.toPersistence(data);
       const newProduct = await this.prisma.product.create({
-        data: {
-          ...dataTosend,
-          supplier: {
-            connect: { id: supplierId },
-          },
-        },
+        data: dataTosend,
       });
-      return this.mapper.toReceive(newProduct);
+      return this.mapper.toEntity(newProduct);
     } catch (error) {
       console.error(`error: repository: ${error.message}`);
       throw new BadGatewayException(`error repo:${error}`);
@@ -50,7 +37,7 @@ export class ProductRepository implements IProductRepository {
     try {
       const products = await this.prisma.product.findMany();
       const productToreceive = products.map((product) =>
-        this.mapper.toReceive(product),
+        this.mapper.toEntity(product),
       );
       return productToreceive;
     } catch (error) {
@@ -61,7 +48,7 @@ export class ProductRepository implements IProductRepository {
   }
   async updateProcut(
     productId: string,
-    productData: ProductDto,
+    productData: UpdateProductDto,
   ): Promise<ProductEntity> {
     try {
       const productToUpdate = this.mapper.toUpdate(productData);
@@ -70,7 +57,7 @@ export class ProductRepository implements IProductRepository {
         data: { ...productToUpdate },
       });
 
-      return this.mapper.toReceive(updateProducts);
+      return this.mapper.toEntity(updateProducts);
     } catch (err) {
       throw new BadGatewayException(`error on repository: ${err.message}`);
     }
@@ -85,7 +72,7 @@ export class ProductRepository implements IProductRepository {
       if (!product) {
         throw new BadGatewayException('ID Invalid!');
       }
-      return this.mapper.toReceive(product);
+      return this.mapper.toEntity(product);
     } catch (error) {
       throw new BadGatewayException(`error repository: ${error}`);
     }
@@ -129,7 +116,7 @@ export class ProductRepository implements IProductRepository {
         },
       });
 
-      return this.mapper.toReceive(updateStock);
+      return this.mapper.toEntity(updateStock);
     } catch (error) {
       throw new BadRequestException(`L\'approvisionnement n\'a pas puis passé`);
     }
@@ -166,7 +153,7 @@ export class ProductRepository implements IProductRepository {
         }),
         this.prisma.product.count({ where: query }),
       ]);
-      const prod = data.map((d) => this.mapper.toReceive(d));
+      const prod = data.map((d) => this.mapper.toEntity(d));
       return { products: prod, total: total };
     } catch (error) {
       throw new BadRequestException(
@@ -198,7 +185,7 @@ export class ProductRepository implements IProductRepository {
         }),
         this.prisma.product.count(),
       ]);
-      const prod = products.map((d) => this.mapper.toReceive(d));
+      const prod = products.map((d) => this.mapper.toEntity(d));
       return {
         data: prod,
         total,

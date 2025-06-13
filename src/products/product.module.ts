@@ -10,15 +10,18 @@ import { DeleteProductUseCase } from './application/usescases/delete-product.use
 import { ByProductUseCase } from './application/usescases/by-to-product.usecase';
 import { FiterProductUseCase } from './application/usescases/filtrage-product.usecase';
 import { PaginateProductUseCase } from './application/usescases/paginate-products.usecase';
+import { CategoryProductRepositoyName } from 'src/categories/domain/interfaces/category-repository.interface';
+import { CatetoryProductRepository } from 'src/categories/infrastructure/category-repository.impl';
+import { CategoryProductMapper } from 'src/categories/domain/categoryMappers/category-mapper';
 @Module({
   imports: [],
 
   controllers: [ProductController],
   providers: [
     // serviece
-    PrismaService, 
+    PrismaService,
 
-    // use cases 
+    // use cases
     CreatePrductUseCase,
     FindAllProductUseCase,
     UpdateProductUseCase,
@@ -30,9 +33,13 @@ import { PaginateProductUseCase } from './application/usescases/paginate-product
       provide: 'IProductRepository',
       useClass: ProductRepository,
     },
+    {
+      provide: CategoryProductRepositoyName,
+      useClass: CatetoryProductRepository,
+    },
     //   mappers
     ProductMapper,
-    
+    CategoryProductMapper,
   ],
   exports: [],
 })

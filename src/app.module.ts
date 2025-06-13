@@ -11,6 +11,7 @@ import { SupplierModule } from './supplier/supplier.module';
 import { StockModule } from './stockMouvement/stock.module';
 import { OderModule } from './order/order.module';
 import { InvoiceModule } from './invoice/invoice.module';
+import { CategoryProductModule } from './categories/category.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { InvoiceModule } from './invoice/invoice.module';
     StockModule,
     OderModule,
     InvoiceModule,
+    CategoryProductModule,
   ],
   controllers: [AppController],
   providers: [AppService],

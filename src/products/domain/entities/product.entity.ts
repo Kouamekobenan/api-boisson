@@ -7,6 +7,7 @@ export class ProductEntity {
     private purchasePrice: number,
     private stock: number,
     private supplierId: string,
+    private categoryProductId:string | null,
     private createdAt: Date,
     private updatedAt: Date,
   ) {}
@@ -44,6 +45,9 @@ export class ProductEntity {
 
   getUpdatedAt(): Date {
     return this.updatedAt;
+  }
+  getCategoryProductId():string | null{
+    return this.categoryProductId
   }
 
   // 🔹 SETTERS avec validations

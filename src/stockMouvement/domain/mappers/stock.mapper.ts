@@ -2,6 +2,7 @@ import { StockMovement as PrismaStock } from "@prisma/client";
 import { StockEntity } from "../entities/stock.entity";
 import { StockType } from "../enums/stock.enums";
 import { StockDTO } from "src/stockMouvement/application/dtos/create-stock-dto.dto";
+import { toSafeNumber } from "src/common/number/conversion";
 export class StockMapper{
     private static readonly isUndefined:string ="isUnDefined"
     toReceive(data:PrismaStock):StockEntity{
@@ -9,7 +10,7 @@ export class StockMapper{
             data.id,
             data.productId,
             data.type as StockType,
-            data.quantity,
+           toSafeNumber(data.quantity) ,
             data.createdAt,
             data.deliveryId ?? StockMapper.isUndefined,
         )

@@ -28,15 +28,13 @@ async function bootstrap() {
       },
     }),
   );
-  // Service de configuration
   const configService = app.get(ConfigService);
 
-  // Configuration du port
   const port = configService.get<number>('PORT', 3000);
   const host = configService.get<string>('HOST', '0.0.0.0');
 
   app.enableCors({
-    origin: ' http://localhost:5173', // Autorise explicitement ton frontend
+    origin: ' http://localhost:5173', 
     methods: ['GET,HEAD,PUT,PATCH,POST,DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true, // Si tu utilises des cookies/session
@@ -53,7 +51,7 @@ async function bootstrap() {
   app.useGlobalGuards(new RolesGuard(reflector));
   // Configuration de Swagger
   const config = new DocumentBuilder()
-    .setTitle('Api GDB')
+    .setTitle('Api DrinkFlow')
     .setDescription('API de gestion immobilière')
     .setVersion('1.0')
     .addBearerAuth(
