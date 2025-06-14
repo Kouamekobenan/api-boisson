@@ -7,9 +7,6 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
-
-// const helmet = require('helmet');
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     // Activation des logs en production
@@ -23,27 +20,30 @@ async function bootstrap() {
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          connectSrc: ["'self'", 'http://127.0.0.1:3000'], // Ajoutez l'origine de votre front-end ici
+          connectSrc: ["'self'", 'http://127.0.0.1:3000'],
         },
       },
     }),
   );
   const configService = app.get(ConfigService);
 
-  const port = configService.get<number>('PORT', 3000);
+  const port = process.env.PORT
+    ? parseInt(process.env.PORT, 10)
+    : configService.get<number>('PORT', 3000);
+
   const host = configService.get<string>('HOST', '0.0.0.0');
 
   app.enableCors({
-    origin: ' http://localhost:5173', 
+    origin: ' http://localhost:5173',
     methods: ['GET,HEAD,PUT,PATCH,POST,DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
-    credentials: true, // Si tu utilises des cookies/session
+    credentials: true,
   });
 
   app.use(helmet());
   //middleware d'eception d'erreur
   app.useGlobalFilters(new HttpExceptionFilter());
- 
+
   // recuperation du reflactor
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
@@ -68,7 +68,7 @@ async function bootstrap() {
   SwaggerModule.setup('api/docs', app, document);
 
   try {
-    await app.listen(port , host);
+    await app.listen(port, host);
 
     const logger = new Logger('Bootstrap');
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
