@@ -432,4 +432,24 @@ export class DeliveryRepository implements IDeliveryRepository {
       });
     }
   }
+  async history(deliveryPersonId: string): Promise<Delivery[]> {
+    try {
+      const delivery = await this.prisma.delivery.findMany({
+        where: { deliveryPersonId },
+        orderBy: { createdAt: 'desc' },
+        include: {
+          deliveryProducts: {
+            include: { product: true },
+          },
+        },
+      });
+      const allDelivery = delivery.map((data) => this.mapper.toDomain(data));
+      return allDelivery;
+    } catch (error) {
+      throw new BadRequestException(`Failed to get history deliveryPerson`, {
+        cause: error,
+        description: error.message,
+      });
+    }
+  }
 }

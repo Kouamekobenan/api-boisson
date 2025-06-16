@@ -13,6 +13,7 @@ export class ProductMapper {
       product.id,
       product.name,
       product.description ?? ProductMapper.isUndefined,
+      product.criticalStockThreshold,
       product.price.toNumber(),
       product.purchasePrice.toNumber(),
       product.stock,
@@ -22,7 +23,6 @@ export class ProductMapper {
       product.updatedAt,
     );
   }
-
   toPersistence(productDto: ProductDto): Prisma.ProductCreateInput {
     return {
       name: productDto.name,
@@ -30,6 +30,7 @@ export class ProductMapper {
       price: new Decimal(productDto.price),
       purchasePrice: new Decimal(productDto.purchasePrice),
       stock: productDto.stock,
+      criticalStockThreshold: productDto.criticalStockThreshold,
       supplier: { connect: { id: productDto.supplierId } },
       ...(productDto.categoryProductId && {
         categoryProduct: {
@@ -54,6 +55,9 @@ export class ProductMapper {
     }
     if (products.stock) {
       productData.stock = products.stock;
+    }
+    if (products.criticalStockThreshold !== undefined) {
+      productData.criticalStockThreshold = products.criticalStockThreshold;
     }
     if (products.suplierId) {
       productData.suplierId = products.suplierId;

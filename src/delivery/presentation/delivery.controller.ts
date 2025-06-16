@@ -33,7 +33,7 @@ import { ValidateDeliveryUseCase } from '../application/usecases/validate-delive
 import { CanceledDeliveryUseCase } from '../application/usecases/cancel-delivery.usecase';
 import { PaginateDeliveryUseCase } from '../application/usecases/paginate-delivery.usecase';
 import { PaginateDto } from '../application/dtos/paginate.dto';
-
+import { HistoryDeliveryPersonUseCase } from '../application/usecases/history-deliveryPerson.usecases';
 
 @ApiTags('Delivery')
 @Controller('delivery')
@@ -48,6 +48,7 @@ export class DeliveryController {
     private readonly validateDeliveryUseCase: ValidateDeliveryUseCase,
     private readonly canceledDeliveryUseCase: CanceledDeliveryUseCase,
     private readonly paginateDeliveryUseCase: PaginateDeliveryUseCase,
+    private readonly historyDeliveryPersonUseCase: HistoryDeliveryPersonUseCase,
   ) {}
 
   @Post(':id')
@@ -72,6 +73,28 @@ export class DeliveryController {
     @Body() delivery: DeliveryDto,
   ): Promise<Delivery> {
     return await this.createDeliveryUseCase.execute(deliveryId, delivery);
+  }
+
+  @Get(':deliveryPersonId')
+  @ApiOperation({
+    summary: "Récupérer l'historique des livraisons d'un livreur",
+  })
+  @ApiParam({
+    name: 'deliveryPersonId',
+    description: 'ID du livreur',
+    required: true,
+    example: 'delivery-person-123',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des livraisons effectuées par le livreur',
+    type: [Delivery],
+  })
+  @ApiResponse({ status: 404, description: 'Livreur non trouvé' })
+  async history(
+    @Param('deliveryPersonId') deliveryPersonId: string,
+  ): Promise<Delivery[]> {
+    return await this.historyDeliveryPersonUseCase.execute(deliveryPersonId);
   }
 
   @Get('paginate')

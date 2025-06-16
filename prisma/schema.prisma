@@ -13,6 +13,7 @@ model Product {
   name             String
   description      String?
   price            Decimal
+   criticalStockThreshold Int @default(10) // 🚨 Seuil critique par défaut
   purchasePrice    Decimal  @default(0)           // ✅ Ajout ici
   stock            Int
   supplierId       String

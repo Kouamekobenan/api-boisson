@@ -22,4 +22,5 @@ export interface IDeliveryRepository {
   ): Promise<Delivery>;
   annulateDelivery(deliveryId: string): Promise<Delivery>;
   paginate(limit: number, page: number): Promise<{data:Delivery[] , total:number, totalPage:number, page:number, limit:number}>;
+  history(deliveryPersonId:string): Promise<Delivery[]>;
 }

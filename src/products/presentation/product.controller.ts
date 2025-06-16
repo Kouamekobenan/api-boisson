@@ -34,6 +34,7 @@ import { FiterProductUseCase } from '../application/usescases/filtrage-product.u
 import { FilterProductDto } from '../application/dtos/filtrage-product.dto';
 import { PaginateProductUseCase } from '../application/usescases/paginate-products.usecase';
 import { PaginateDto } from '../application/dtos/paginate-product.dto';
+import { LowerStockUseCase } from '../application/usescases/lower-stock.usecase';
 @Public()
 @ApiTags('product')
 @Controller('product')
@@ -46,6 +47,7 @@ export class ProductController {
     private readonly byProductUseCase: ByProductUseCase,
     private readonly fiterProductUseCase: FiterProductUseCase,
     private readonly paginateProductUseCase: PaginateProductUseCase,
+    private readonly lowerStockUseCase: LowerStockUseCase,
   ) {}
 
   @Post()
@@ -61,9 +63,7 @@ export class ProductController {
   })
   @ApiResponse({ status: 400, description: 'Requête invalide' })
   @ApiResponse({ status: 500, description: 'Erreur serveur' })
-  async createProduct(
-    @Body() dataProduct: ProductDto,
-  ): Promise<ProductEntity> {
+  async createProduct(@Body() dataProduct: ProductDto): Promise<ProductEntity> {
     return await this.createProductUseCase.execute(dataProduct);
   }
   @Get()
@@ -225,5 +225,21 @@ export class ProductController {
     } catch (error) {
       throw new BadRequestException(`Erreur d'achat : ${error.message}`);
     }
+  }
+  @Get('lower')
+  @ApiOperation({ summary: 'Lister les produits avec un stock critique' })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Liste des produits dont le stock est inférieur au seuil critique',
+    type: ProductEntity,
+    isArray: true,
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erreur lors de la récupération des produits',
+  })
+  async lower(): Promise<ProductEntity[]> {
+    return await this.lowerStockUseCase.execute();
   }
 }

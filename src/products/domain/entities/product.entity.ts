@@ -4,10 +4,11 @@ export class ProductEntity {
     private name: string,
     private description: string,
     private price: number,
+    private criticalStockThreshold: number,
     private purchasePrice: number,
     private stock: number,
     private supplierId: string,
-    private categoryProductId:string | null,
+    private categoryProductId: string | null,
     private createdAt: Date,
     private updatedAt: Date,
   ) {}
@@ -22,6 +23,10 @@ export class ProductEntity {
   getName(): string {
     return this.name;
   }
+
+  getCriticalStockThreshold():number{
+    return this.criticalStockThreshold
+  };
 
   getDescription(): string {
     return this.description;
@@ -46,8 +51,8 @@ export class ProductEntity {
   getUpdatedAt(): Date {
     return this.updatedAt;
   }
-  getCategoryProductId():string | null{
-    return this.categoryProductId
+  getCategoryProductId(): string | null {
+    return this.categoryProductId;
   }
 
   // 🔹 SETTERS avec validations

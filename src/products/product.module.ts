@@ -13,6 +13,7 @@ import { PaginateProductUseCase } from './application/usescases/paginate-product
 import { CategoryProductRepositoyName } from 'src/categories/domain/interfaces/category-repository.interface';
 import { CatetoryProductRepository } from 'src/categories/infrastructure/category-repository.impl';
 import { CategoryProductMapper } from 'src/categories/domain/categoryMappers/category-mapper';
+import { LowerStockUseCase } from './application/usescases/lower-stock.usecase';
 @Module({
   imports: [],
 
@@ -29,6 +30,8 @@ import { CategoryProductMapper } from 'src/categories/domain/categoryMappers/cat
     ByProductUseCase,
     FiterProductUseCase,
     PaginateProductUseCase,
+    LowerStockUseCase,
+    // LowerStockUseCase,
     {
       provide: 'IProductRepository',
       useClass: ProductRepository,

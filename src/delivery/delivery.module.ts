@@ -11,6 +11,7 @@ import { FindAllDeliveryOfDeliveryPersonUsecase } from './application/usecases/f
 import { ValidateDeliveryUseCase } from './application/usecases/validate-delivery.usecase';
 import { CanceledDeliveryUseCase } from './application/usecases/cancel-delivery.usecase';
 import { PaginateDeliveryUseCase } from './application/usecases/paginate-delivery.usecase';
+import { HistoryDeliveryPersonUseCase } from './application/usecases/history-deliveryPerson.usecases';
 @Module({
   imports: [],
 
@@ -28,6 +29,7 @@ import { PaginateDeliveryUseCase } from './application/usecases/paginate-deliver
     ValidateDeliveryUseCase,
     CanceledDeliveryUseCase,
     PaginateDeliveryUseCase,
+    HistoryDeliveryPersonUseCase,
     {
       provide: 'IDeliveryRepository',
       useClass: DeliveryRepository,

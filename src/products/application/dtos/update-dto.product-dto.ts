@@ -13,6 +13,12 @@ export class UpdateProductDto {
 
   @ApiProperty({ example: 1.99, description: 'Prix du produit en euros' })
   price: number;
+  @ApiProperty({
+    example: 10,
+    description:
+      'Seuil critique du stock — en dessous de cette valeur, une alerte est déclenchée',
+  })
+  criticalStockThreshold: number;
   @ApiProperty({ example: 1.99, description: "Prix d'achat " })
   purchasePrice: number;
 

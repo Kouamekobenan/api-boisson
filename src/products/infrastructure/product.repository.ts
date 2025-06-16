@@ -201,4 +201,18 @@ export class ProductRepository implements IProductRepository {
       });
     }
   }
+  async lower(): Promise<ProductEntity[]> {
+    try {
+      const product = await this.prisma.product.findMany();
+      const filter = product.filter(
+        (filte) => filte.stock < filte.criticalStockThreshold,
+      );
+      return filter.map((p) => this.mapper.toEntity(p));
+    } catch (error) {
+      throw new BadRequestException('Failed to action', {
+        cause: error,
+        description: error.message,
+      });
+    }
+  }
 }

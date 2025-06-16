@@ -27,4 +27,5 @@ export interface IProductRepository {
     totalPage: number;
     limit: number;
   }>;
+  lower(): Promise<ProductEntity[]>;
 }
