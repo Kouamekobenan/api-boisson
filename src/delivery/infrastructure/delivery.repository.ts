@@ -452,4 +452,15 @@ export class DeliveryRepository implements IDeliveryRepository {
       });
     }
   }
+  async process(): Promise<Delivery[]> {
+    try {
+      const deliveries = await this.prisma.delivery.findMany({
+        where: { status: DeliveryStatus.IN_PROGRESS },
+      });
+      const allDeliveries= deliveries.map((delivery) => this.mapper.toDomain(delivery))
+      return allDeliveries
+    } catch (error) {
+      throw new BadRequestException('Failed to retrieve deliveries in progress')
+    }
+  }
 }

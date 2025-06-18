@@ -1,6 +1,7 @@
 import { DeliveryDto } from '../dtos/delivery-dto.dto';
 import { Delivery } from 'src/delivery/domain/entities/delivery.entity';
 import { UpdateDeliveryDto } from '../dtos/update-delivery-dto.dto';
+import { DeliveryStatus } from 'src/delivery/domain/enums/deliveryStatus.enums';
 
 export interface IDeliveryRepository {
   created(deliveryPersonId: string, data: DeliveryDto): Promise<Delivery>;
@@ -21,6 +22,16 @@ export interface IDeliveryRepository {
     data: DeliveryDto,
   ): Promise<Delivery>;
   annulateDelivery(deliveryId: string): Promise<Delivery>;
-  paginate(limit: number, page: number): Promise<{data:Delivery[] , total:number, totalPage:number, page:number, limit:number}>;
-  history(deliveryPersonId:string): Promise<Delivery[]>;
+  paginate(
+    limit: number,
+    page: number,
+  ): Promise<{
+    data: Delivery[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }>;
+  history(deliveryPersonId: string): Promise<Delivery[]>;
+  process(): Promise<Delivery[]>;
 }

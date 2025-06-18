@@ -34,6 +34,7 @@ import { CanceledDeliveryUseCase } from '../application/usecases/cancel-delivery
 import { PaginateDeliveryUseCase } from '../application/usecases/paginate-delivery.usecase';
 import { PaginateDto } from '../application/dtos/paginate.dto';
 import { HistoryDeliveryPersonUseCase } from '../application/usecases/history-deliveryPerson.usecases';
+import { DeliveryProgressUseCase } from '../application/usecases/delivery-progress.usecase';
 
 @ApiTags('Delivery')
 @Controller('delivery')
@@ -49,6 +50,7 @@ export class DeliveryController {
     private readonly canceledDeliveryUseCase: CanceledDeliveryUseCase,
     private readonly paginateDeliveryUseCase: PaginateDeliveryUseCase,
     private readonly historyDeliveryPersonUseCase: HistoryDeliveryPersonUseCase,
+    private readonly deliveryProgressUseCase: DeliveryProgressUseCase,
   ) {}
 
   @Post(':id')
@@ -74,7 +76,11 @@ export class DeliveryController {
   ): Promise<Delivery> {
     return await this.createDeliveryUseCase.execute(deliveryId, delivery);
   }
-
+  @Get('progress')
+  @ApiOperation({ summary: 'Récuperer les livraisons en cours' })
+  async process(): Promise<Delivery[]> {
+    return await this.deliveryProgressUseCase.execute();
+  }
   @Get(':deliveryPersonId')
   @ApiOperation({
     summary: "Récupérer l'historique des livraisons d'un livreur",
@@ -96,7 +102,6 @@ export class DeliveryController {
   ): Promise<Delivery[]> {
     return await this.historyDeliveryPersonUseCase.execute(deliveryPersonId);
   }
-
   @Get('paginate')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Paginer les livraisons' })
