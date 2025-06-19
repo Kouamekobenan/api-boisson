@@ -7,24 +7,32 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
-    // Activation des logs en production
     logger:
       process.env.NODE_ENV === 'production'
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
+
+  // ✅ Helmet avec contentSecurityPolicy correct
   app.use(
     helmet({
       contentSecurityPolicy: {
         directives: {
           defaultSrc: ["'self'"],
-          connectSrc: ["'self'", 'http://127.0.0.1:3000'],
+          connectSrc: [
+            "'self'",
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'https://api-boisson-1.onrender.com',
+          ],
         },
       },
     }),
   );
+
   const configService = app.get(ConfigService);
 
   const port = process.env.PORT
@@ -33,23 +41,21 @@ async function bootstrap() {
 
   const host = configService.get<string>('HOST', '0.0.0.0');
 
+  // ✅ Configuration CORS pour le frontend Electron/Next.js
   app.enableCors({
-    origin: ' http://localhost:5173',
-    methods: ['GET,HEAD,PUT,PATCH,POST,DELETE', 'OPTIONS'],
+    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true,
   });
 
-  app.use(helmet());
-  //middleware d'eception d'erreur
+  // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  // recuperation du reflactor
   const reflector = app.get(Reflector);
   app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
-  app.useGlobalGuards(app.get(JwtAuthGuard));
-  app.useGlobalGuards(new RolesGuard(reflector));
-  // Configuration de Swagger
+
+  // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api DrinkFlow')
     .setDescription('API de gestion immobilière')
@@ -61,9 +67,10 @@ async function bootstrap() {
         bearerFormat: 'JWT',
         in: 'header',
       },
-      'access-token', // Ce nom doit être utilisé dans `ApiBearerAuth()`
+      'access-token',
     )
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
@@ -80,4 +87,5 @@ async function bootstrap() {
     process.exit(1);
   }
 }
+
 bootstrap();
