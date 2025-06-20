@@ -33,6 +33,7 @@ import { AuthMeUseCase } from '../usecases/authme.usecase';
 import { CurrentUser } from 'src/core/decorators/user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/role.guard';
+
 @ApiBearerAuth('access-token')
 @Controller('auth')
 export class AuthController {
