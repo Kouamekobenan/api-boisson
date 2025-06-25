@@ -151,7 +151,7 @@ export class ProductController {
     type: Number,
     example: 10,
   })
-  async filter(@Query() filters: FilterProductDto): Promise<ProductEntity[]> {
+  async filter(@Query() filters: FilterProductDto) {
     return await this.fiterProductUseCase.execute(filters);
   }
 

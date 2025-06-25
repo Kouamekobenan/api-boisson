@@ -125,7 +125,13 @@ export class ProductRepository implements IProductRepository {
     filter: FilterProductDto,
     page: number = 1,
     limit: number = 10,
-  ): Promise<{ products: ProductEntity[]; total: number }> {
+  ): Promise<{
+    products: ProductEntity[];
+    page: number;
+    total: number;
+    totalPage: number;
+    limit: number;
+  }> {
     try {
       const query: any = {};
       if (filter.name) {
@@ -154,7 +160,13 @@ export class ProductRepository implements IProductRepository {
         this.prisma.product.count({ where: query }),
       ]);
       const prod = data.map((d) => this.mapper.toEntity(d));
-      return { products: prod, total: total };
+      return {
+        products: prod,
+        total: total,
+        totalPage: Math.ceil(total / limit),
+        page,
+        limit,
+      };
     } catch (error) {
       throw new BadRequestException(
         'Failed to filter the products and pagination',

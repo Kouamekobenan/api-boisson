@@ -15,13 +15,9 @@ export class FiterProductUseCase {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
   ) {}
-  async execute(
-    input: FilterProductDto,
-    page?: number,
-    limit?: number,
-  ): Promise<ProductEntity[]> {
+  async execute(input: FilterProductDto, page?: number, limit?: number) {
     try {
-      const {products} = await this.productRepository.filter(input)
+      const products = await this.productRepository.filter(input, page, limit);
       this.logger.log('data filters!:', JSON.stringify(products));
       return products;
     } catch (error) {

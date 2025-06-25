@@ -16,7 +16,13 @@ export interface IProductRepository {
     input: FilterProductDto,
     page?: number,
     limit?: number,
-  ): Promise<{ products: ProductEntity[]; total: number }>;
+  ): Promise<{
+    products: ProductEntity[];
+    page:number;
+    total: number;
+    totalPage: number;
+    limit: number;
+  }>;
   paginate(
     limit: number,
     page: number,

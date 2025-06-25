@@ -10,6 +10,7 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { FindInvoiceByIdUseCase } from './application/usescase/find-invoice-byId.usecase';
 import { DeleteInvoiceUseCase } from './application/usescase/delete-invoice.usecase';
 import { GetAllInvoiceUseCase } from './application/usescase/gell-all-invoice.usecase';
+import { PaginateInvoiceUseCase } from './application/usescase/paginate-invoice';
 
 @Module({
   controllers: [InvoiceController],
@@ -28,6 +29,7 @@ import { GetAllInvoiceUseCase } from './application/usescase/gell-all-invoice.us
     FindInvoiceByIdUseCase,
     DeleteInvoiceUseCase,
     GetAllInvoiceUseCase,
+    PaginateInvoiceUseCase,
     // Mappers
     OrderMapper,
     InvoiceMapper,

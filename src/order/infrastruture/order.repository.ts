@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   Injectable,
+  Logger,
   NotFoundException,
 } from '@nestjs/common';
 import { IOrderRepository } from '../application/interface/order-interface-repository';
@@ -11,6 +12,7 @@ import { OrderEntity } from '../domain/entities/order.entity';
 import { OrderItemDto } from '../application/dtos/create-orderItm-dto.dto';
 @Injectable()
 export class OrderRepository implements IOrderRepository {
+  private readonly logger = new Logger(OrderRepository.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly mapper: OrderMapper,
@@ -138,6 +140,43 @@ export class OrderRepository implements IOrderRepository {
       return this.mapper.toDomain(order);
     } catch (error) {
       throw new BadRequestException(`error repo:${error}`);
+    }
+  }
+
+  async paginate(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: OrderEntity[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+      const [orders, total] = await Promise.all([
+        this.prisma.order.findMany({
+          skip: skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.order.count(),
+      ]);
+      const allOrder = orders.map((data) => this.mapper.toDomain(data));
+      return {
+        data: allOrder,
+        total,
+        totalPage: Math.ceil(total / limit),
+        page,
+        limit,
+      };
+    } catch (error) {
+      this.logger.error('Echec to pagination orders', error.stock);
+      throw new BadRequestException('Failled to pagination orders', {
+        cause: error,
+        description: error.message,
+      });
     }
   }
 }

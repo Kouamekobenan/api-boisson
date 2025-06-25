@@ -6,5 +6,15 @@ export interface IInvoiceRepository {
   create(createDto: CreateInvoiceDto): Promise<Invoice>;
   findById(id: string): Promise<Invoice | null>;
   delete(id: string): Promise<void>;
-  getAll():Promise<Invoice[]>
+  getAll(): Promise<Invoice[]>;
+  paginate(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: Invoice[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }>;
 }

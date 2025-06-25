@@ -64,4 +64,41 @@ export class InvoiceRepository implements IInvoiceRepository {
       });
     }
   }
+  async paginate(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: Invoice[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }> {
+    try {
+      const skip = (page - 1) * limit;
+      const [invoices, total] = await Promise.all([
+        this.prisma.invoice.findMany({
+          skip: skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.invoice.count(),
+      ]);
+      const allInvoices = invoices.map((invoice) =>
+        this.mapper.toEntity(invoice),
+      );
+      return {
+        data: allInvoices,
+        total,
+        totalPage: Math.ceil(total / limit),
+        page,
+        limit,
+      };
+    } catch (error) {
+      throw new BadRequestException('Failled to paginate invoice ',{
+        cause:error,
+        description:error.message
+      })
+    }
+  }
 }

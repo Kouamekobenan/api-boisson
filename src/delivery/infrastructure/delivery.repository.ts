@@ -303,7 +303,6 @@ export class DeliveryRepository implements IDeliveryRepository {
             `Produit ${product.getProductId()} introuvable dans la livraison.`,
           );
         }
-
         if (
           deliveredQuantity + returnedQuantity !==
           toSafeNumber(originalProductDelivery.quantity)

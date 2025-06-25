@@ -5,4 +5,14 @@ export interface IOrderRepository {
   createOrder(data: OrderDto): Promise<OrderEntity>;
   deleteOrder(orderId: string): Promise<void>;
   findOrderById(orderId: string): Promise<OrderEntity>;
+  paginate(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: OrderEntity[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }>;
 }
