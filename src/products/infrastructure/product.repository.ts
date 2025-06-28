@@ -12,6 +12,7 @@ import { ProductDto } from '../application/dtos/product-dto.dto';
 import { ProductEntity } from '../domain/entities/product.entity';
 import { FilterProductDto } from '../application/dtos/filtrage-product.dto';
 import { UpdateProductDto } from '../application/dtos/update-dto.product-dto';
+import { ProvisionningDto } from '../application/dtos/provisionning-product.dto';
 
 @Injectable()
 export class ProductRepository implements IProductRepository {
@@ -48,13 +49,13 @@ export class ProductRepository implements IProductRepository {
   }
   async updateProcut(
     productId: string,
-    productData: UpdateProductDto,
+    productData: ProvisionningDto,
   ): Promise<ProductEntity> {
     try {
-      const productToUpdate = this.mapper.toUpdate(productData);
+      const productToUpdate = this.mapper.toProvisioning(productData);
       const updateProducts = await this.prisma.product.update({
         where: { id: productId },
-        data: { ...productToUpdate },
+        data: productToUpdate,
       });
 
       return this.mapper.toEntity(updateProducts);
@@ -91,27 +92,30 @@ export class ProductRepository implements IProductRepository {
     }
   }
 
-  async byProduct(productId: string, quantity: number): Promise<ProductEntity> {
+  async provisioning(
+    productId: string,
+    products: { supplierId: string; stock: number },
+  ): Promise<ProductEntity> {
     try {
-      const product = await this.prisma.product.findUnique({
+      // Recupere le stock actuel en base
+      const existingProduct = await this.prisma.product.findUnique({
         where: { id: productId },
       });
 
-      if (!product) {
-        throw new NotFoundException(`Cet id: ${productId} n\'exist pas!`);
+      if (!existingProduct) {
+        throw new NotFoundException('Produit non trouvé');
       }
-
       //  Faire l'approvisionnement du produit
       const updateStock = await this.prisma.product.update({
         where: { id: productId },
-        data: { stock: product.stock + quantity },
+        data: { stock: existingProduct.stock + products.stock, supplierId:products.supplierId },
       });
       //   Modifie le mouvement du stock
       await this.prisma.stockMovement.create({
         data: {
-          productId: product.id,
+          productId: existingProduct.id,
           type: 'ENTRY',
-          quantity: quantity,
+          quantity: products.stock,
         },
       });
 

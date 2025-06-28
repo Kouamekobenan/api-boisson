@@ -7,13 +7,12 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
-
 model Product {
   id               String              @id @default(uuid())
   name             String
   description      String?
   price            Decimal
-   criticalStockThreshold Int @default(10) // 🚨 Seuil critique par défaut
+  criticalStockThreshold Int @default(10) // 🚨 Seuil critique par défaut
   purchasePrice    Decimal  @default(0)           // ✅ Ajout ici
   stock            Int
   supplierId       String

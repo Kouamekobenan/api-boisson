@@ -37,6 +37,7 @@ import { PaginateDto } from '../application/dtos/paginate-product.dto';
 import { LowerStockUseCase } from '../application/usescases/lower-stock.usecase';
 import { GetByIdProductUseCase } from '../application/usescases/get-product-byId.usecase';
 import { query } from 'express';
+import { ProvisionningDto } from '../application/dtos/provisionning-product.dto';
 @Public()
 @ApiTags('product')
 @Controller('product')
@@ -203,6 +204,7 @@ export class ProductController {
   }
 
   @Patch(':id')
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Acheter un produit et mettre à jour le stock' })
   @ApiResponse({
     status: 200,
@@ -219,12 +221,12 @@ export class ProductController {
     example: 10,
     description: 'Quantité du produit à acheter',
   })
-  async byProduct(
+  async provisionning(
     @Param('id') productId: string,
-    @Body('quantity', ParseIntPipe) quantity: number,
+    @Body() products: ProvisionningDto,
   ): Promise<ProductEntity> {
     try {
-      return await this.byProductUseCase.execute(productId, quantity);
+      return await this.byProductUseCase.execute(productId, products);
     } catch (error) {
       throw new BadRequestException(`Erreur d'achat : ${error.message}`);
     }

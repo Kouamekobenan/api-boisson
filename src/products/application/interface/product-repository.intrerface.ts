@@ -2,13 +2,18 @@ import { ProductEntity } from 'src/products/domain/entities/product.entity';
 import { ProductDto } from '../dtos/product-dto.dto';
 import { ProductByDto } from '../dtos/product-by-dto';
 import { FilterProductDto } from '../dtos/filtrage-product.dto';
+import { UpdateProductDto } from '../dtos/update-dto.product-dto';
+import { ProvisionningDto } from '../dtos/provisionning-product.dto';
 export interface IProductRepository {
   createProduct(data: ProductDto): Promise<ProductEntity>;
-  byProduct(productId: string, quantity: number): Promise<ProductEntity>;
+  provisioning(
+    productId: string,
+    products: {supplierId?:string, stock?:number},
+  ): Promise<ProductEntity>;
   findAllProduct(): Promise<ProductEntity[]>;
   updateProcut(
     productId: string,
-    productData: ProductByDto,
+    productData: UpdateProductDto,
   ): Promise<ProductEntity>;
   findById(productId: string): Promise<ProductEntity | null>;
   deleteProduct(productId: string): Promise<void>;

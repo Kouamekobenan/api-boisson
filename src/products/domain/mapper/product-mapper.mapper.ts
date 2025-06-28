@@ -3,18 +3,16 @@ import { ProductEntity } from '../entities/product.entity';
 import { Prisma, Product as productPrisma } from '@prisma/client';
 import { ProductDto } from 'src/products/application/dtos/product-dto.dto';
 import { UpdateProductDto } from 'src/products/application/dtos/update-dto.product-dto';
-import { ProductByDto } from 'src/products/application/dtos/product-by-dto';
-
+import { ProvisionningDto } from 'src/products/application/dtos/provisionning-product.dto';
 export class ProductMapper {
   private static readonly isUndefined = 'pas de description';
-
   toEntity(product: productPrisma): ProductEntity {
     return new ProductEntity(
       product.id,
       product.name,
       product.description ?? ProductMapper.isUndefined,
-      product.criticalStockThreshold,
       product.price.toNumber(),
+      product.criticalStockThreshold,
       product.purchasePrice.toNumber(),
       product.stock,
       product.supplierId,
@@ -71,12 +69,14 @@ export class ProductMapper {
     return productData;
   }
 
-  toAddBy(products: ProductByDto): any {
-    const productData: any = {};
-
-    if (products.stock) {
-      productData.stock = products.stock;
+  toProvisioning(provisionning: ProvisionningDto): Prisma.ProductUpdateInput {
+    const provisionnigData: Prisma.ProductUpdateInput = {};
+    if (provisionning.supplierId !== undefined) {
+      provisionnigData.supplier = { connect: { id: provisionning.supplierId } };
     }
-    return productData;
+    if (provisionning.stock !== undefined) {
+      provisionnigData.stock = provisionning.stock;
+    }
+    return provisionnigData;
   }
 }
