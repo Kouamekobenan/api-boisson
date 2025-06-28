@@ -35,6 +35,8 @@ import { FilterProductDto } from '../application/dtos/filtrage-product.dto';
 import { PaginateProductUseCase } from '../application/usescases/paginate-products.usecase';
 import { PaginateDto } from '../application/dtos/paginate-product.dto';
 import { LowerStockUseCase } from '../application/usescases/lower-stock.usecase';
+import { GetByIdProductUseCase } from '../application/usescases/get-product-byId.usecase';
+import { query } from 'express';
 @Public()
 @ApiTags('product')
 @Controller('product')
@@ -48,6 +50,7 @@ export class ProductController {
     private readonly fiterProductUseCase: FiterProductUseCase,
     private readonly paginateProductUseCase: PaginateProductUseCase,
     private readonly lowerStockUseCase: LowerStockUseCase,
+    private readonly getByIdProductUseCase: GetByIdProductUseCase,
   ) {}
 
   @Post()
@@ -227,7 +230,22 @@ export class ProductController {
     }
   }
   @Get('lower')
+  @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Lister les produits avec un stock critique' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    example: 1,
+    description: 'Numéro de page (par défaut 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    example: 10,
+    description: 'Nombre d’éléments par page (par défaut 10)',
+  })
   @ApiResponse({
     status: 200,
     description:
@@ -239,7 +257,30 @@ export class ProductController {
     status: 400,
     description: 'Erreur lors de la récupération des produits',
   })
-  async lower(): Promise<ProductEntity[]> {
-    return await this.lowerStockUseCase.execute();
+  async lower(@Query() query: PaginateDto) {
+    return await this.lowerStockUseCase.execute(query.page, query.limit);
+  }
+
+  @Get(':id')
+  @ApiOperation({ summary: 'Récupérer un produit par ID' })
+  @ApiParam({
+    name: 'id',
+    description: "L'identifiant unique du produit",
+    type: String,
+    example: 'abc123xyz',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Produit trouvé avec succès',
+    type: ProductEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Produit non trouvé',
+  })
+  async findById(
+    @Param('id') productId: string,
+  ): Promise<ProductEntity | null> {
+    return await this.getByIdProductUseCase.execute(productId);
   }
 }

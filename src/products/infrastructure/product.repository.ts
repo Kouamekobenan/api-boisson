@@ -77,7 +77,6 @@ export class ProductRepository implements IProductRepository {
       throw new BadGatewayException(`error repository: ${error}`);
     }
   }
-
   // DELETE PRODUCT
   async deleteProduct(productId: string): Promise<void> {
     try {
@@ -213,18 +212,55 @@ export class ProductRepository implements IProductRepository {
       });
     }
   }
-  async lower(): Promise<ProductEntity[]> {
+  async lower(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: ProductEntity[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }> {
     try {
-      const product = await this.prisma.product.findMany();
-      const filter = product.filter(
-        (filte) => filte.stock < filte.criticalStockThreshold,
-      );
-      return filter.map((p) => this.mapper.toEntity(p));
+      const skip = (page - 1) * limit;
+      const stockThreshold = 10;
+
+      const [products, total] = await Promise.all([
+        this.prisma.product.findMany({
+          where: {
+            stock: {
+              lt: stockThreshold,
+            },
+          },
+          skip,
+          take: limit,
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.product.count({
+          where: {
+            stock: {
+              lt: stockThreshold,
+            },
+          },
+        }),
+      ]);
+      const data = products.map((p) => this.mapper.toEntity(p));
+      return {
+        data,
+        total,
+        totalPage: Math.ceil(total / limit),
+        page,
+        limit,
+      };
     } catch (error) {
-      throw new BadRequestException('Failed to action', {
-        cause: error,
-        description: error.message,
-      });
+      throw new BadRequestException(
+        'Échec de la récupération du stock critique',
+        {
+          cause: error,
+          description: error.message,
+        },
+      );
     }
   }
 }

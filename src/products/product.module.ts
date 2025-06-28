@@ -14,6 +14,7 @@ import { CategoryProductRepositoyName } from 'src/categories/domain/interfaces/c
 import { CatetoryProductRepository } from 'src/categories/infrastructure/category-repository.impl';
 import { CategoryProductMapper } from 'src/categories/domain/categoryMappers/category-mapper';
 import { LowerStockUseCase } from './application/usescases/lower-stock.usecase';
+import { GetByIdProductUseCase } from './application/usescases/get-product-byId.usecase';
 @Module({
   imports: [],
 
@@ -31,6 +32,7 @@ import { LowerStockUseCase } from './application/usescases/lower-stock.usecase';
     FiterProductUseCase,
     PaginateProductUseCase,
     LowerStockUseCase,
+    GetByIdProductUseCase,
     // LowerStockUseCase,
     {
       provide: 'IProductRepository',

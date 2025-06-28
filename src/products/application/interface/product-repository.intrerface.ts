@@ -18,7 +18,7 @@ export interface IProductRepository {
     limit?: number,
   ): Promise<{
     products: ProductEntity[];
-    page:number;
+    page: number;
     total: number;
     totalPage: number;
     limit: number;
@@ -33,5 +33,14 @@ export interface IProductRepository {
     totalPage: number;
     limit: number;
   }>;
-  lower(): Promise<ProductEntity[]>;
+  lower(
+    page: number,
+    limit: number,
+  ): Promise<{
+    data: ProductEntity[];
+    total: number;
+    totalPage: number;
+    page: number;
+    limit: number;
+  }>;
 }
