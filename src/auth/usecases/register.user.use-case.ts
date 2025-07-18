@@ -13,12 +13,6 @@ export class RegisterUserUseCase {
   ) {}
 
   async execute(user: UserDto) {
-    //  console.log('user register :', user)
-    if (user.password.length > 6) {
-      throw new BadGatewayException(
-        'le mot de passe doit avoir au moins 6 lettre',
-      );
-    }
     let existingUser;
     try {
       existingUser = await this.userRepository.findByEmail(user.email);
@@ -38,7 +32,6 @@ export class RegisterUserUseCase {
         ...user,
         password: haspassword,
       });
-      console.log('user save:', newUser);
     } catch (error) {
       console.error('une erreur lors de la creation de user:', error.message);
     }

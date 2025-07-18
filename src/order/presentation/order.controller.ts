@@ -5,8 +5,10 @@ import {
   Delete,
   Get,
   Param,
+  Patch,
   Post,
   Query,
+  Search,
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
@@ -20,12 +22,15 @@ import {
   ApiBadRequestResponse,
   ApiBody,
   ApiQuery,
+  ApiParam,
 } from '@nestjs/swagger';
 import { Public } from 'src/common/decorators/public.decorator';
 import { DeleteOderUseCase } from '../application/usecases/delete-order-usecase.usecase';
 import { FindOrderByIdUseCase } from '../application/usecases/find-order-byId-usecase.usecase';
 import { PaginateOrderUseCase } from '../application/usecases/pagination-order.usecase';
 import { PaginateDto } from '../application/dtos/paginate-order.dto';
+import { CanceledOrderUseCase } from '../application/usecases/canceled-order.usecase';
+import { ValidateOrderUseCase } from '../application/usecases/validate-order.usecase';
 @Public()
 @ApiTags('Orders') // Nom de la catégorie dans Swagger
 @Controller('order')
@@ -35,6 +40,8 @@ export class OrderController {
     private readonly deleteOderUseCase: DeleteOderUseCase,
     private readonly findOrderByIdUseCase: FindOrderByIdUseCase,
     private readonly paginateOrderUseCase: PaginateOrderUseCase,
+    private readonly canceledOrderUseCase: CanceledOrderUseCase,
+    private readonly validateOrderUseCase: ValidateOrderUseCase,
   ) {}
 
   @Post()
@@ -43,7 +50,7 @@ export class OrderController {
     status: 201,
     description: 'Commande créée avec succès',
     type: OrderEntity,
-  }) // Réponse réussie
+  })
   @ApiBadRequestResponse({ description: 'Requête invalide' }) // Gestion des erreurs 400
   @ApiBody({ type: OrderDto }) // Documentation du body de la requête
   async createOrder(@Body() data: OrderDto): Promise<OrderEntity> {
@@ -53,7 +60,6 @@ export class OrderController {
       throw new BadRequestException(`error to controller: ${error.message}`);
     }
   }
-
   @Delete(':id')
   @ApiOperation({ summary: 'Delete order By Id' })
   async deleteOrder(@Param('id') orderId: string): Promise<Object> {
@@ -94,7 +100,7 @@ export class OrderController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async paginate(@Query() query: PaginateDto) {
-    return await this.paginateOrderUseCase.execute(query.page, query.limit);
+    return await this.paginateOrderUseCase.execute(query.page, query.limit, query.search, query.status);
   }
 
   @Get(':id')
@@ -106,5 +112,51 @@ export class OrderController {
     } catch (error) {
       throw new BadRequestException(`error controller: ${error.message}`);
     }
+  }
+  @Patch(':id')
+  @ApiOperation({ summary: 'Annuler une commande' })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID de la commande à annuler',
+    example: 'b51c6b4f-eeb5-4b12-9c98-2e1a8c5e23cf',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Commande annulée avec succès',
+    type: OrderEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Commande non trouvée',
+  })
+  async canceled(@Param('id') id: string): Promise<OrderEntity> {
+    return await this.canceledOrderUseCase.execute(id);
+  }
+  @Patch('/completed/:id')
+  @ApiOperation({
+    summary: 'Valider une commande (passer au statut COMPLETED)',
+  })
+  @ApiParam({
+    name: 'id',
+    required: true,
+    description: 'ID de la commande à valider',
+    example: '7a6b6d41-d93b-4db7-88c9-55712c7c7a1f',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Commande validée avec succès',
+    type: OrderEntity,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Commande non trouvée',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'La commande ne peut pas être validée dans son état actuel',
+  })
+  async validate(@Param('id') id: string): Promise<OrderEntity> {
+    return await this.validateOrderUseCase.execute(id);
   }
 }

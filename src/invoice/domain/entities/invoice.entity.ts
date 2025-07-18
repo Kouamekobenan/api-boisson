@@ -4,7 +4,8 @@ export class Invoice{
         private orderId:string | null,
         private totalPrice:number,
         private createdAt :Date,
-        private updatedAt:Date
+        private updatedAt:Date,
+        // private orderItem= []
     ){}
     // SETTERS 
     getId():string{

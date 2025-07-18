@@ -10,6 +10,7 @@ import { OrderMapper } from '../domain/mappers/order-mapper.mapper';
 import { OrderDto } from '../application/dtos/create-order-dto.dto';
 import { OrderEntity } from '../domain/entities/order.entity';
 import { OrderItemDto } from '../application/dtos/create-orderItm-dto.dto';
+import { OrderStatus } from '../domain/enums/orderStatus.enum';
 @Injectable()
 export class OrderRepository implements IOrderRepository {
   private readonly logger = new Logger(OrderRepository.name);
@@ -123,13 +124,17 @@ export class OrderRepository implements IOrderRepository {
   }
   async findOrderById(orderId: string): Promise<OrderEntity> {
     try {
-      // console.log('id:', orderId);
       const order = await this.prisma.order.findUnique({
         where: { id: orderId },
         include: {
+          user: {
+            select: { name: true, phone: true, email: true },
+          },
           orderItems: {
             include: {
-              product: true,
+              product: {
+                select: { name: true },
+              },
             },
           },
         },
@@ -142,10 +147,11 @@ export class OrderRepository implements IOrderRepository {
       throw new BadRequestException(`error repo:${error}`);
     }
   }
-
   async paginate(
     page: number,
     limit: number,
+    search?: string,
+    status?: OrderStatus | 'ALL',
   ): Promise<{
     data: OrderEntity[];
     total: number;
@@ -155,14 +161,41 @@ export class OrderRepository implements IOrderRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
+
+      // Construction du filtre dynamique
+      const where: any = {};
+
+      if (search) {
+        where.id = {
+          contains: search,
+          mode: 'insensitive', // pour ne pas être sensible à la casse
+        };
+      }
+      if (status && status !== 'ALL') {
+        where.status = status;
+      }
+
       const [orders, total] = await Promise.all([
         this.prisma.order.findMany({
-          skip: skip,
+          where,
+          include: {
+            orderItems: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                  },
+                },
+              },
+            },
+          },
+          skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.order.count(),
+        this.prisma.order.count({ where }),
       ]);
+
       const allOrder = orders.map((data) => this.mapper.toDomain(data));
       return {
         data: allOrder,
@@ -172,8 +205,40 @@ export class OrderRepository implements IOrderRepository {
         limit,
       };
     } catch (error) {
-      this.logger.error('Echec to pagination orders', error.stock);
-      throw new BadRequestException('Failled to pagination orders', {
+      this.logger.error('Échec de la pagination des commandes', error);
+      throw new BadRequestException('Erreur lors de la pagination', {
+        cause: error,
+        description: error.message,
+      });
+    }
+  }
+  async canceled(id: string): Promise<OrderEntity> {
+    try {
+      const updateOrderSatus = await this.prisma.order.update({
+        where: { id },
+        data: {
+          status: 'CANCELED',
+        },
+      });
+      return this.mapper.toDomain(updateOrderSatus);
+    } catch (error) {
+      throw new BadRequestException(`Failled to canceled order`, {
+        cause: error,
+        description: error.message,
+      });
+    }
+  }
+  async validate(id: string): Promise<OrderEntity> {
+    try {
+      const validateOrder = await this.prisma.order.update({
+        where: { id },
+        data: {
+          status: 'COMPLETED',
+        },
+      });
+      return this.mapper.toDomain(validateOrder);
+    } catch (error) {
+      throw new BadRequestException('Failled to completed order', {
         cause: error,
         description: error.message,
       });

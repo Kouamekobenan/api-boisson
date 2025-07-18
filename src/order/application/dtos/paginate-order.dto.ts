@@ -1,7 +1,6 @@
-// src/dispute-categories/interfaces/http/dto/paginate-dispute-category.dto.ts
-
 import { Type } from 'class-transformer';
-import { IsOptional, IsPositive } from 'class-validator';
+import { IsEnum, IsOptional, IsPositive, IsString } from 'class-validator';
+import { OrderStatus } from 'src/order/domain/enums/orderStatus.enum';
 
 export class PaginateDto {
   @IsOptional()
@@ -13,4 +12,12 @@ export class PaginateDto {
   @IsPositive()
   @Type(() => Number)
   limit: number = 10;
+
+  @IsOptional()
+  @IsString()
+  search: string;
+
+  @IsOptional()
+  @IsEnum(OrderStatus)
+  status: OrderStatus;
 }

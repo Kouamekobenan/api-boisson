@@ -11,6 +11,9 @@ export class OrderEntity {
     private createdAt: Date,
     private updatedAt: Date,
     private orderItems: orderItemEntity[] = [],
+    private userName?: string,
+    private userMail?:string,
+    private userPhone?:string,
   ) {}
 
   public getOrderItems(): orderItemEntity[] {

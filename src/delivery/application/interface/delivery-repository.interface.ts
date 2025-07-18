@@ -16,7 +16,9 @@ export interface IDeliveryRepository {
     startDate: string,
     endDate: string,
   ): Promise<Delivery[]>;
-  findById(deliveryId: string): Promise<Delivery>;
+  findById(
+    deliveryId: string,
+  ): Promise<{ data: Delivery & { totalPrice: number } }>;
   validateDeliveryById(
     deliveryId: string,
     data: DeliveryDto,
@@ -25,8 +27,10 @@ export interface IDeliveryRepository {
   paginate(
     limit: number,
     page: number,
+    search: string,
+    status: DeliveryStatus | 'ALL',
   ): Promise<{
-    data: Delivery[];
+    data: (Delivery & { totalPrice: number })[];
     total: number;
     totalPage: number;
     page: number;

@@ -46,7 +46,6 @@ $ npm run start:prod
 ```
 
 ## Run tests
-
 ```bash
 # unit tests
 $ npm run test
@@ -97,3 +96,9 @@ Nest is an MIT-licensed open source project. It can grow thanks to the sponsors 
 ## License
 
 Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+## PASS WORD
+NONO12
+## EMAIL
+nono12@gmail.com
+## Faire migrer la BD SUR Rend
+ pg_dump -U postgres -d domini -f dump.sql

@@ -1,4 +1,10 @@
-import { BadRequestException, Injectable, Logger } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  Logger,
+  NotFoundException,
+} from '@nestjs/common';
 import { IInvoiceRepository } from '../domain/interfaces/invoice-repository.interface';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { InvoiceMapper } from '../domain/mappers/invoice.mapper';
@@ -95,10 +101,38 @@ export class InvoiceRepository implements IInvoiceRepository {
         limit,
       };
     } catch (error) {
-      throw new BadRequestException('Failled to paginate invoice ',{
-        cause:error,
-        description:error.message
-      })
+      throw new BadRequestException('Failled to paginate invoice ', {
+        cause: error,
+        description: error.message,
+      });
+    }
+  }
+  async generate(orderId: string): Promise<Invoice> {
+    try {
+      const order = await this.prisma.order.findUnique({
+        where: { id: orderId },
+        include: {
+          orderItems: true,
+          invoice: true,
+        },
+      });
+      if (!order) throw new NotFoundException('Commande introuvable');
+      if (order.invoice) throw new ConflictException('Facture déjà générée');
+
+      const totalPrice = order.orderItems.reduce(
+        (sum, item) => sum + item.totalPrice.toNumber(),
+        0,
+      );
+      const createDto = await this.prisma.invoice.create({
+        data: { orderId, totalPrice },
+      });
+      return this.mapper.toEntity(createDto);
+    } catch (error) {
+      this.logger.error(`Failled to generate invoice ${error.message}`);
+      throw new BadRequestException(`Failled to generate invoice`, {
+        cause: error,
+        description: error.message,
+      });
     }
   }
 }

@@ -18,7 +18,10 @@ import { CreateDeliveryUseCase } from '../application/usecases/delivery-usecase.
 import { Public } from 'src/common/decorators/public.decorator';
 import { FindAllDeliveryUseCase } from '../application/usecases/findAll-delivery.use-case';
 import {
+  ApiBadRequestResponse,
   ApiBody,
+  ApiNotFoundResponse,
+  ApiOkResponse,
   ApiOperation,
   ApiParam,
   ApiQuery,
@@ -35,6 +38,8 @@ import { PaginateDeliveryUseCase } from '../application/usecases/paginate-delive
 import { PaginateDto } from '../application/dtos/paginate.dto';
 import { HistoryDeliveryPersonUseCase } from '../application/usecases/history-deliveryPerson.usecases';
 import { DeliveryProgressUseCase } from '../application/usecases/delivery-progress.usecase';
+import { FindOrderByIdUseCase } from 'src/order/application/usecases/find-order-byId-usecase.usecase';
+import { FindDeliveryByIdUseCase } from '../application/usecases/findById-delivery.usecase';
 
 @ApiTags('Delivery')
 @Controller('delivery')
@@ -51,6 +56,7 @@ export class DeliveryController {
     private readonly paginateDeliveryUseCase: PaginateDeliveryUseCase,
     private readonly historyDeliveryPersonUseCase: HistoryDeliveryPersonUseCase,
     private readonly deliveryProgressUseCase: DeliveryProgressUseCase,
+    private readonly findByIdDeliveryUseCe: FindDeliveryByIdUseCase,
   ) {}
 
   @Post(':id')
@@ -75,6 +81,75 @@ export class DeliveryController {
     @Body() delivery: DeliveryDto,
   ): Promise<Delivery> {
     return await this.createDeliveryUseCase.execute(deliveryId, delivery);
+  }
+  @Get('paginate')
+  @UsePipes(new ValidationPipe({ transform: true }))
+  @ApiOperation({ summary: 'Paginer les livraisons' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    type: Number,
+    description: 'Numéro de la page (par défaut: 1)',
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    type: Number,
+    description: "Nombre d'éléments par page (par défaut: 2)",
+  })
+  @ApiQuery({
+    name: 'search',
+    required: false,
+    type: String,
+    description: "Rechercher par l'identifiant de la livraison",
+  })
+  @ApiQuery({
+    name: 'status',
+    required: false,
+    enum: ['PENDING', 'VALIDATED', 'COMPLETED', 'CANCELLED', 'ALL'],
+    description:
+      "Filtrer par statut de la livraison (ou 'ALL' pour ne pas filtrer)",
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste paginée des livraisons',
+    schema: {
+      example: {
+        data: [
+          {
+            id: 'uuid',
+            supplierId: 'uuid',
+            status: 'PENDING',
+            createdAt: '2025-06-11T12:00:00.000Z',
+            updatedAt: '2025-06-11T12:00:00.000Z',
+            deliveryPerson: {
+              id: 'uuid',
+              name: 'Nom livreur',
+            },
+            deliveryProducts: [
+              {
+                product: {
+                  name: 'Produit A',
+                  price: 100,
+                },
+              },
+            ],
+          },
+        ],
+        total: 12,
+        totalPage: 6,
+        page: 1,
+        limit: 2,
+      },
+    },
+  })
+  async paginate(@Query() query: PaginateDto) {
+    return await this.paginateDeliveryUseCase.execute(
+      query.limit,
+      query.page,
+      query.search,
+      query.status,
+    );
   }
   @Get('progress')
   @ApiOperation({ summary: 'Récuperer les livraisons en cours' })
@@ -102,44 +177,7 @@ export class DeliveryController {
   ): Promise<Delivery[]> {
     return await this.historyDeliveryPersonUseCase.execute(deliveryPersonId);
   }
-  @Get('paginate')
-  @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Paginer les livraisons' })
-  @ApiQuery({
-    name: 'page',
-    required: false,
-    type: Number,
-    description: 'Numéro de la page (par défaut: 1)',
-  })
-  @ApiQuery({
-    name: 'limit',
-    required: false,
-    type: Number,
-    description: "Nombre d'éléments par page (par défaut: 2)",
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Liste paginée des livraisons',
-    schema: {
-      example: {
-        data: [
-          {
-            id: 1,
-            supplierId: 'uuid',
-            createdAt: '2025-06-11T12:00:00.000Z',
-            updatedAt: '2025-06-11T12:00:00.000Z',
-          },
-        ],
-        total: 12,
-        totalPage: 6,
-        page: 1,
-        limit: 2,
-      },
-    },
-  })
-  async paginate(@Query() query: PaginateDto) {
-    return await this.paginateDeliveryUseCase.execute(query.limit, query.page);
-  }
+
   @Get()
   @ApiOperation({ summary: 'Récupérer toutes les livraisons' })
   @ApiResponse({
@@ -289,5 +327,49 @@ export class DeliveryController {
   @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
   async annulateDelivery(@Param('id') deliveryId: string): Promise<Delivery> {
     return await this.canceledDeliveryUseCase.execute(deliveryId);
+  }
+
+  @Get('/deliverie/:deliveryId')
+  @ApiOperation({
+    summary: 'Récupérer une livraison par ID avec le totalPrice',
+  })
+  @ApiParam({
+    name: 'deliveryId',
+    required: true,
+    description: 'ID de la livraison à récupérer',
+    type: String,
+  })
+  @ApiOkResponse({
+    description: 'Livraison trouvée avec le totalPrice calculé',
+    schema: {
+      example: {
+        data: {
+          id: 'abc123',
+          deliveryPerson: {
+            id: 'user123',
+            name: 'Jean Dupont',
+          },
+          deliveryProducts: [
+            {
+              product: {
+                name: 'Produit A',
+                price: 10,
+              },
+              quantity: 2,
+            },
+          ],
+          totalPrice: 20,
+        },
+      },
+    },
+  })
+  @ApiNotFoundResponse({ description: 'Livraison non trouvée' })
+  @ApiBadRequestResponse({
+    description: 'ID invalide ou erreur lors de la récupération',
+  })
+  async findById(
+    @Param('deliveryId') deliveryId: string,
+  ): Promise<{ data: Delivery & { totalPrice: number } }> {
+    return await this.findByIdDeliveryUseCe.execute(deliveryId);
   }
 }

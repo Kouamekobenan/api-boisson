@@ -249,14 +249,47 @@ export class DeliveryRepository implements IDeliveryRepository {
     }
   }
   // DELIVERY BY ID
-  async findById(deliveryId: string): Promise<Delivery> {
+  async findById(
+    deliveryId: string,
+  ): Promise<{ data: Delivery & { totalPrice: number } }> {
     const delivery = await this.prisma.delivery.findUnique({
       where: { id: deliveryId },
+      include: {
+        deliveryPerson: {
+          select: {
+            id: true,
+            name: true,
+          },
+        },
+        deliveryProducts: {
+          include: {
+            product: {
+              select: {
+                name: true,
+                price: true,
+              },
+            },
+          },
+        },
+      },
     });
+
     if (!delivery) {
       throw new BadRequestException(`delivery is not found`);
     }
-    return this.mapper.toDomain(delivery);
+
+    const totalPrice = delivery.deliveryProducts.reduce((sum, dp) => {
+      const price = dp.product?.price ?? 0;
+      return sum + price.toNumber() * toSafeNumber(dp.quantity);
+    }, 0);
+
+    const domainData = this.mapper.toDomain(delivery) as Delivery & {
+      totalPrice: number;
+    };
+
+    domainData.totalPrice =totalPrice
+
+    return {data:domainData};
   }
   async validateDeliveryById(
     deliveryId: string,
@@ -399,26 +432,71 @@ export class DeliveryRepository implements IDeliveryRepository {
   async paginate(
     limit: number,
     page: number,
+    search: string,
+    status: DeliveryStatus | 'ALL',
   ): Promise<{
-    data: Delivery[];
+    data: (Delivery & { totalPrice: number })[];
     total: number;
     totalPage: number;
     page: number;
     limit: number;
   }> {
     try {
-      const skip = (page - 1) * limit;
+      const skip = (page - 1) * limit; // Construction du filtre dynamique
+      const where: any = {};
+      if (search) {
+        where.id = {
+          contains: search,
+          mode: 'insensitive', // pour ne pas être sensible à la casse
+        };
+      }
+      if (status && status !== 'ALL') {
+        where.status = status;
+      }
+
       const [deliveries, total] = await Promise.all([
         this.prisma.delivery.findMany({
+          where,
+          include: {
+            deliveryPerson: {
+              select: {
+                id: true,
+                name: true,
+              },
+            },
+            deliveryProducts: {
+              include: {
+                product: {
+                  select: {
+                    name: true,
+                    price: true,
+                  },
+                },
+              },
+            },
+          },
           skip: skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.delivery.count(),
+        this.prisma.delivery.count({ where }),
       ]);
-      const deleveryMap = deliveries.map((p) => this.mapper.toDomain(p));
+
+      const result = deliveries.map((data) => {
+        const totalPrice = data.deliveryProducts.reduce((sum, dp) => {
+          const price = dp.product.price;
+          return sum + price.toNumber() * toSafeNumber(dp.quantity);
+        }, 0);
+
+        const domainData = this.mapper.toDomain(data) as Delivery & {
+          totalPrice: number;
+        };
+
+        domainData.totalPrice = totalPrice;
+        return domainData;
+      });
       return {
-        data: deleveryMap,
+        data: result,
         total,
         totalPage: Math.ceil(total / limit),
         page,
@@ -456,10 +534,14 @@ export class DeliveryRepository implements IDeliveryRepository {
       const deliveries = await this.prisma.delivery.findMany({
         where: { status: DeliveryStatus.IN_PROGRESS },
       });
-      const allDeliveries= deliveries.map((delivery) => this.mapper.toDomain(delivery))
-      return allDeliveries
+      const allDeliveries = deliveries.map((delivery) =>
+        this.mapper.toDomain(delivery),
+      );
+      return allDeliveries;
     } catch (error) {
-      throw new BadRequestException('Failed to retrieve deliveries in progress')
+      throw new BadRequestException(
+        'Failed to retrieve deliveries in progress',
+      );
     }
   }
 }

@@ -11,6 +11,7 @@ import { FindInvoiceByIdUseCase } from './application/usescase/find-invoice-byId
 import { DeleteInvoiceUseCase } from './application/usescase/delete-invoice.usecase';
 import { GetAllInvoiceUseCase } from './application/usescase/gell-all-invoice.usecase';
 import { PaginateInvoiceUseCase } from './application/usescase/paginate-invoice';
+import { GenerateInvoiceUseCase } from './application/usescase/generate-invoice.usecase.dto';
 
 @Module({
   controllers: [InvoiceController],
@@ -30,6 +31,7 @@ import { PaginateInvoiceUseCase } from './application/usescase/paginate-invoice'
     DeleteInvoiceUseCase,
     GetAllInvoiceUseCase,
     PaginateInvoiceUseCase,
+    GenerateInvoiceUseCase,
     // Mappers
     OrderMapper,
     InvoiceMapper,

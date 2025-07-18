@@ -26,6 +26,7 @@ import { DeleteInvoiceUseCase } from '../application/usescase/delete-invoice.use
 import { GetAllInvoiceUseCase } from '../application/usescase/gell-all-invoice.usecase';
 import { PaginateInvoiceUseCase } from '../application/usescase/paginate-invoice';
 import { PaginateDto } from '../application/dtos/paginate-invoice.dto';
+import { GenerateInvoiceUseCase } from '../application/usescase/generate-invoice.usecase.dto';
 @Public()
 @ApiTags('Invoice') // Groupe Swagger
 @Controller('invoice')
@@ -36,6 +37,7 @@ export class InvoiceController {
     private readonly deleteInvoiceUseCase: DeleteInvoiceUseCase,
     private readonly getAllnvoiceUseCase: GetAllInvoiceUseCase,
     private readonly paginateInvoiceUseCase: PaginateInvoiceUseCase,
+    private readonly generateInvoiceUseCase: GenerateInvoiceUseCase,
   ) {}
   @Post()
   @ApiOperation({ summary: 'Créer une nouvelle facture' })
@@ -131,5 +133,29 @@ export class InvoiceController {
   })
   async findAll(): Promise<Invoice[]> {
     return await this.getAllnvoiceUseCase.execute();
+  }
+  @Post('/generate/:orderId')
+  @ApiOperation({ summary: 'Générer une facture pour une commande' })
+  @ApiParam({
+    name: 'orderId',
+    type: String,
+    description: 'Identifiant de la commande',
+    required: true,
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Facture générée avec succès',
+    type: Invoice, // tu peux aussi créer un DTO `InvoiceDto`
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Commande introuvable',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Une facture a déjà été générée pour cette commande',
+  })
+  async generate(@Param('orderId') orderId: string): Promise<Invoice> {
+    return await this.generateInvoiceUseCase.execute(orderId);
   }
 }

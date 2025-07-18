@@ -2,9 +2,7 @@ import { OrderEntity } from '../entities/order.entity';
 import { Order as dataPrisma } from '@prisma/client';
 import { OrderStatus } from '../enums/orderStatus.enum';
 import { OrderDto } from 'src/order/application/dtos/create-order-dto.dto';
-import { orderItemEntity } from '../entities/orderItem.entity';
 import { OrderItemDto } from 'src/order/application/dtos/create-orderItm-dto.dto';
-
 export class OrderMapper {
   toDomain(dataPrisma: any): OrderEntity {
     return new OrderEntity(
@@ -19,10 +17,15 @@ export class OrderMapper {
         quantity: item.quantity,
         unitPrice: item.unitPrice,
         totalPrice: item.totalPrice.toNumber(),
+        // Ajout du nom du produit depuis la relation
+        productName: item.product?.name,
       })) || [],
+      // Ajout du nom de l'utilisateur depuis la relation
+      dataPrisma.user?.name,
+      dataPrisma.user?.email,
+      dataPrisma.user?.phone,
     );
   }
-
   toApplication(dataDto: OrderDto): any {
     return {
       userId: dataDto.userId,
