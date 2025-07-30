@@ -5,6 +5,7 @@ import { SupplierMapper } from '../domain/mappers/supplier-mapper.mapper';
 import { SupplierDto } from '../application/dtos/supplier-dto.dto';
 import { SupplierEntity } from '../domain/entities/supplier.entity';
 import { UpdateSupplierDto } from '../application/dtos/update-dto.dto';
+import { SuccessResponse } from 'src/common/types/response-controller.type';
 
 @Injectable()
 export class SupplierRepository implements ISupplierRepository {
@@ -12,13 +13,18 @@ export class SupplierRepository implements ISupplierRepository {
     private readonly prisma: PrismaService,
     private readonly mapper: SupplierMapper,
   ) {}
-  async create(data: SupplierDto): Promise<SupplierEntity> {
+  async create(data: SupplierDto): Promise<SuccessResponse<SupplierEntity>> {
     try {
       const supplierTosend = this.mapper.toSend(data);
       const created = await this.prisma.supplier.create({
         data: supplierTosend,
       });
-      return this.mapper.toReceive(created);
+      return {
+        status: 201,
+        success: true,
+        message: 'Fournisseurs créer avec succès!',
+        data: this.mapper.toReceive(created),
+      };
     } catch (error) {
       console.error(`error in repo:${error.message}`);
       throw new BadRequestException(`error confict: repo:${error.message}`);

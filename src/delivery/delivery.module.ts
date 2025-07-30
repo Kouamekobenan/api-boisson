@@ -14,6 +14,8 @@ import { PaginateDeliveryUseCase } from './application/usecases/paginate-deliver
 import { HistoryDeliveryPersonUseCase } from './application/usecases/history-deliveryPerson.usecases';
 import { DeliveryProgressUseCase } from './application/usecases/delivery-progress.usecase';
 import { FindDeliveryByIdUseCase } from './application/usecases/findById-delivery.usecase';
+import { DeliveryDayUseCase } from './application/usecases/today-delivery.usecase';
+import { FindByDateRangeDeliveryUseCase } from './application/usecases/findByDateRange-delivery.usecase';
 @Module({
   imports: [],
 
@@ -34,6 +36,8 @@ import { FindDeliveryByIdUseCase } from './application/usecases/findById-deliver
     HistoryDeliveryPersonUseCase,
     DeliveryProgressUseCase,
     FindDeliveryByIdUseCase,
+    DeliveryDayUseCase,
+    FindByDateRangeDeliveryUseCase,
     {
       provide: 'IDeliveryRepository',
       useClass: DeliveryRepository,

@@ -38,4 +38,6 @@ export interface IDeliveryRepository {
   }>;
   history(deliveryPersonId: string): Promise<Delivery[]>;
   process(): Promise<Delivery[]>;
+  toDay(): Promise<Delivery[]>;
+  findByDateRange(startDate: string, endDate: string): Promise<Delivery[]>;
 }

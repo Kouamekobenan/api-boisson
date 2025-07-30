@@ -40,6 +40,8 @@ import { HistoryDeliveryPersonUseCase } from '../application/usecases/history-de
 import { DeliveryProgressUseCase } from '../application/usecases/delivery-progress.usecase';
 import { FindOrderByIdUseCase } from 'src/order/application/usecases/find-order-byId-usecase.usecase';
 import { FindDeliveryByIdUseCase } from '../application/usecases/findById-delivery.usecase';
+import { DeliveryDayUseCase } from '../application/usecases/today-delivery.usecase';
+import { FindByDateRangeDeliveryUseCase } from '../application/usecases/findByDateRange-delivery.usecase';
 
 @ApiTags('Delivery')
 @Controller('delivery')
@@ -57,6 +59,8 @@ export class DeliveryController {
     private readonly historyDeliveryPersonUseCase: HistoryDeliveryPersonUseCase,
     private readonly deliveryProgressUseCase: DeliveryProgressUseCase,
     private readonly findByIdDeliveryUseCe: FindDeliveryByIdUseCase,
+    private readonly deliveryDayUseCase: DeliveryDayUseCase,
+    private readonly findByDateRangeDeliveryUseCase: FindByDateRangeDeliveryUseCase,
   ) {}
 
   @Post(':id')
@@ -81,6 +85,48 @@ export class DeliveryController {
     @Body() delivery: DeliveryDto,
   ): Promise<Delivery> {
     return await this.createDeliveryUseCase.execute(deliveryId, delivery);
+  }
+
+  @Get('range/date')
+  @ApiOperation({ summary: 'Récupérer les livraisons entre deux dates' })
+  @ApiQuery({
+    name: 'startDate',
+    required: true,
+    type: String,
+    example: '2025-07-01',
+    description: 'Date de début (format ISO : YYYY-MM-DD)',
+  })
+  @ApiQuery({
+    name: 'endDate',
+    required: true,
+    type: String,
+    example: '2025-07-22',
+    description: 'Date de fin (format ISO : YYYY-MM-DD)',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des livraisons dans l’intervalle de date',
+    type: [Delivery],
+  })
+  async findDateRange(
+    @Query('startDate') startDate: string,
+    @Query('endDate') endDate: string,
+  ): Promise<Delivery[]> {
+    return await this.findByDateRangeDeliveryUseCase.execute(
+      startDate,
+      endDate,
+    );
+  }
+  @Get('/day')
+  @ApiOperation({ summary: 'Récupérer les livraisons journalières' })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste des livraisons du jour',
+    type: [Delivery],
+  })
+  @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
+  async toDay(): Promise<Delivery[]> {
+    return await this.deliveryDayUseCase.excute();
   }
   @Get('paginate')
   @UsePipes(new ValidationPipe({ transform: true }))

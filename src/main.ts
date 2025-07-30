@@ -7,6 +7,7 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
+import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -52,8 +53,8 @@ async function bootstrap() {
   // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
 
-  const reflector = app.get(Reflector);
-  app.useGlobalGuards(new JwtAuthGuard(reflector), new RolesGuard(reflector));
+  // const reflector = app.get(Reflector);
+  // app.useGlobalGuards(new JwtAuthGuard(reflector, PrismaService), new RolesGuard(reflector));
 
   // ✅ Swagger config
   const config = new DocumentBuilder()

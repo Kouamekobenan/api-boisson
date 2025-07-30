@@ -1,5 +1,4 @@
 import { OrderEntity } from '../entities/order.entity';
-import { Order as dataPrisma } from '@prisma/client';
 import { OrderStatus } from '../enums/orderStatus.enum';
 import { OrderDto } from 'src/order/application/dtos/create-order-dto.dto';
 import { OrderItemDto } from 'src/order/application/dtos/create-orderItm-dto.dto';

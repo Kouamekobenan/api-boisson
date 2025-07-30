@@ -5,37 +5,41 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { AuthGuard } from '@nestjs/passport';
-import { Observable } from 'rxjs';
 import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
+import { PrismaService } from 'src/prisma/prisma.service';
 
 @Injectable()
 export class JwtAuthGuard extends AuthGuard('jwt') {
-  constructor(private reflector: Reflector) {
+  constructor(
+    private reflector: Reflector,
+    private prisma: PrismaService,
+  ) {
     super();
   }
 
-  canActivate(
-    context: ExecutionContext,
-  ): boolean | Promise<boolean> | Observable<boolean> {
+  async canActivate(context: ExecutionContext): Promise<boolean> {
     const req = context.switchToHttp().getRequest();
-    const token = req.headers.authorization;
 
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
     ]);
-    if (isPublic) {
-      return true;
-    }
 
-    const result = super.canActivate(context);
+    if (isPublic) return true;
+
+    const result = await super.canActivate(context); 
+
     if (!result) {
-      try {
-        throw new UnauthorizedException('Token invalide ou expiré');
-      } catch (error) {
-        throw new error();
-      }
+      throw new UnauthorizedException('Token invalide ou expiré');
     }
-    return result;
+  // await super.logIn(req);
+    const user = req.user;
+    if (user?.id) {
+      await this.prisma.user.update({
+        where: { id: user.id },
+        data: { lastActiveAt: new Date() },
+      });
+    }
+    return result as boolean;
   }
 }

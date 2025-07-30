@@ -4,6 +4,7 @@ import {
   Controller,
   Delete,
   Get,
+  HttpStatus,
   Param,
   ParseIntPipe,
   Patch,
@@ -38,6 +39,8 @@ import { LowerStockUseCase } from '../application/usescases/lower-stock.usecase'
 import { GetByIdProductUseCase } from '../application/usescases/get-product-byId.usecase';
 import { query } from 'express';
 import { ProvisionningDto } from '../application/dtos/provisionning-product.dto';
+import { ResponseHelper } from 'src/common/helpers/response.helper';
+import { SuccessResponse } from 'src/common/types/response-controller.type';
 @Public()
 @ApiTags('product')
 @Controller('product')
@@ -67,8 +70,10 @@ export class ProductController {
   })
   @ApiResponse({ status: 400, description: 'Requête invalide' })
   @ApiResponse({ status: 500, description: 'Erreur serveur' })
-  async createProduct(@Body() dataProduct: ProductDto): Promise<ProductEntity> {
-    return await this.createProductUseCase.execute(dataProduct);
+  async createProduct(@Body() dataProduct: ProductDto): Promise<SuccessResponse<ProductEntity>> {
+    const product = await this.createProductUseCase.execute(dataProduct);
+    const response= ResponseHelper.success(product)
+    return response
   }
   @Get()
   @ApiOperation({ summary: 'Récupérer tous les produits' })
@@ -106,7 +111,10 @@ export class ProductController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async paginate(@Query() query: PaginateDto) {
-    return await this.paginateProductUseCase.execute(query.limit, query.page);
+    const { data, total, page, limit } =
+      await this.paginateProductUseCase.execute(query.limit, query.page);
+    const response = ResponseHelper.paginated(data, total, page, limit);
+    return response;
   }
   @Get('filter')
   @ApiOperation({

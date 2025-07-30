@@ -1,5 +1,7 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
 import { IUserRepository } from '../interfaces/user.interface.repository';
+import { FilterUserDto } from '../dtos/filter-user.dto';
+import { UserRole } from '../../domain/enums/role.enum';
 
 @Injectable()
 export class PaginateUserUseCase {
@@ -7,12 +9,17 @@ export class PaginateUserUseCase {
     @Inject('IUserRepository')
     private readonly userRepository: IUserRepository,
   ) {}
-  async execute(limit: number, page: number) {
+
+  async execute(
+    page: number,
+    limit: number,
+    search?: FilterUserDto,
+    role?: UserRole | 'ALL',
+  ) {
     try {
-      const users = await this.userRepository.paginate(limit, page);
-      return users;
+      return await this.userRepository.paginate(page, limit, search, role);
     } catch (error) {
-      throw new BadRequestException('Failed to paginate user ', {
+      throw new BadRequestException('Failed to paginate user', {
         cause: error,
         description: error.message,
       });

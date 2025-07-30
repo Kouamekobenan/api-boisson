@@ -108,7 +108,10 @@ export class ProductRepository implements IProductRepository {
       //  Faire l'approvisionnement du produit
       const updateStock = await this.prisma.product.update({
         where: { id: productId },
-        data: { stock: existingProduct.stock + products.stock, supplierId:products.supplierId },
+        data: {
+          stock: existingProduct.stock + products.stock,
+          supplierId: products.supplierId,
+        },
       });
       //   Modifie le mouvement du stock
       await this.prisma.stockMovement.create({
@@ -204,7 +207,7 @@ export class ProductRepository implements IProductRepository {
       return {
         data: prod,
         total,
-        totalPage: Math.ceil(total / limit),
+        totalPage: limit > 1 ? total / limit : 1,
         page,
         limit,
       };

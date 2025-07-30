@@ -34,7 +34,7 @@ export class SupplierController {
     @ApiResponse({ status: 201, description: "Fournisseur créé avec succès.", type: SupplierEntity })
     @ApiResponse({ status: 400, description: "Erreur de validation des données." })
     @ApiBody({ type: SupplierDto, description: "Données du fournisseur à créer" })
-    async create(@Body() data: SupplierDto): Promise<SupplierEntity> {
+    async create(@Body() data: SupplierDto) {
         try {
             return await this.createSupplierUseCase.execute(data);
         } catch (error) {

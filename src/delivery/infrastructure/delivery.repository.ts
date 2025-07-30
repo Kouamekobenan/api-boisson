@@ -287,9 +287,9 @@ export class DeliveryRepository implements IDeliveryRepository {
       totalPrice: number;
     };
 
-    domainData.totalPrice =totalPrice
+    domainData.totalPrice = totalPrice;
 
-    return {data:domainData};
+    return { data: domainData };
   }
   async validateDeliveryById(
     deliveryId: string,
@@ -541,6 +541,83 @@ export class DeliveryRepository implements IDeliveryRepository {
     } catch (error) {
       throw new BadRequestException(
         'Failed to retrieve deliveries in progress',
+      );
+    }
+  }
+  async toDay(): Promise<Delivery[]> {
+    try {
+      const start = new Date();
+      start.setHours(0, 0, 0, 0); // début de la journée
+
+      const end = new Date();
+      end.setHours(23, 59, 59, 999); // fin de la journée
+      const deliveries = await this.prisma.delivery.findMany({
+        where: {
+          createdAt: {
+            gte: start,
+            lte: end,
+          },
+        },
+
+        include: {
+          deliveryPerson: true,
+          deliveryProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      const allDeliveries = deliveries.map((deliv) =>
+        this.mapper.toDomain(deliv),
+      );
+      return allDeliveries;
+    } catch (error) {
+      throw new Error(
+        `Erreur lors de la récupération des livraisons du jour: ${error}`,
+      );
+    }
+  }
+
+  async findByDateRange(
+    startDate: string,
+    endDate: string,
+  ): Promise<Delivery[]> {
+    try {
+      if (!startDate || !endDate) {
+        throw new BadRequestException(
+          'Les dates de début et de fin sont requises.',
+        );
+      }
+      const start = new Date(startDate);
+      const end = new Date(endDate);
+
+      if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+        throw new BadRequestException(
+          'Format de date invalide. Utilisez YYYY-MM-DD.',
+        );
+      }
+      end.setHours(23, 59, 59, 999);
+      const deliveries = await this.prisma.delivery.findMany({
+        where: {
+          createdAt: {
+            gte: start, // Supérieur ou égal à la date de début
+            lte: end, // Inférieur ou égal à la date de fin
+          },
+        },
+        include: {
+          deliveryPerson: true,
+          deliveryProducts: {
+            include: {
+              product: true,
+            },
+          },
+        },
+      });
+      return deliveries.map((delivery) => this.mapper.toDomain(delivery));
+    } catch (error) {
+      throw new BadRequestException(
+        `Failled to retrieve to deliveries : ${error.message}`,
       );
     }
   }

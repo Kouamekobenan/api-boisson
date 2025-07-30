@@ -12,6 +12,7 @@ import { UserMapper } from '../../domain/mappers/user.mapper';
 import { UserDto } from '../../application/dtos/user.dto';
 import { User } from '../../domain/entities/user.entity';
 import { FilterUserDto } from '../../application/dtos/filter-user.dto';
+import { UserRole } from '../../domain/enums/role.enum';
 
 @Injectable()
 export class UserRepository implements IUserRepository {
@@ -84,8 +85,10 @@ export class UserRepository implements IUserRepository {
     }
   }
   async paginate(
-    limit: number,
     page: number,
+    limit: number,
+    search: FilterUserDto,
+    role?: UserRole | 'ALL',
   ): Promise<{
     data: User[];
     totalPage: number;
@@ -95,18 +98,46 @@ export class UserRepository implements IUserRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
+      const where: any = {};
+
+      const orFilters: any[] = [];
+
+      if (search?.name?.trim()) {
+        orFilters.push({
+          name: { contains: search.name.trim(), mode: 'insensitive' },
+        });
+      }
+      if (search?.email?.trim()) {
+        orFilters.push({
+          email: { contains: search.email.trim(), mode: 'insensitive' },
+        });
+      }
+      if (search?.phone?.trim()) {
+        orFilters.push({
+          phone: { contains: search.phone.trim(), mode: 'insensitive' },
+        });
+      }
+
+      if (orFilters.length > 0) {
+        where.OR = orFilters;
+      }
+
+      if (role && role !== 'ALL') {
+        where.role = role;
+      }
+
       const [users, total] = await Promise.all([
         this.prisma.user.findMany({
-          skip: skip,
+          where,
+          skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.user.count(),
+        this.prisma.user.count({ where }),
       ]);
-      const userMap = users.map((user) => this.mapper.toAplication(user));
-      this.logger.log('Users data by pagination', JSON.stringify(userMap));
+
       return {
-        data: userMap,
+        data: users.map((user) => this.mapper.toAplication(user)),
         total,
         totalPage: Math.ceil(total / limit),
         page,
@@ -120,6 +151,7 @@ export class UserRepository implements IUserRepository {
       });
     }
   }
+
   async filter(
     filter: FilterUserDto,
     limit: number,
@@ -161,11 +193,27 @@ export class UserRepository implements IUserRepository {
         limit,
       };
     } catch (error) {
-      this.logger.error('Failed to filter users')
+      this.logger.error('Failed to filter users');
       throw new BadRequestException('Failed to filter user ', {
         cause: error,
         description: error.message,
       });
+    }
+  }
+  async count(): Promise<{ total: number }> {
+    try {
+      const since = new Date(Date.now() - 10 * 60 * 1000);
+      const numberUser = await this.prisma.user.count({
+        where: {
+          lastActiveAt: { gte: since },
+        },
+      });
+      return { total: numberUser };
+    } catch (error) {
+      throw new BadRequestException(
+        `Failled to retrieve number of user connect`,
+        error,
+      );
     }
   }
 }

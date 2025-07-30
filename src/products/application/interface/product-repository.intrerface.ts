@@ -6,7 +6,7 @@ export interface IProductRepository {
   createProduct(data: ProductDto): Promise<ProductEntity>;
   provisioning(
     productId: string,
-    products: {supplierId?:string, stock?:number},
+    products: { supplierId?: string; stock?: number },
   ): Promise<ProductEntity>;
   findAllProduct(): Promise<ProductEntity[]>;
   updateProcut(

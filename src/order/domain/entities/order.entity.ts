@@ -1,4 +1,3 @@
-import { OrderItem } from '@prisma/client';
 import { OrderStatus } from '../enums/orderStatus.enum';
 import { orderItemEntity } from './orderItem.entity';
 

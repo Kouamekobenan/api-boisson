@@ -12,6 +12,12 @@ import { StockModule } from './stockMouvement/stock.module';
 import { OderModule } from './order/order.module';
 import { InvoiceModule } from './invoice/invoice.module';
 import { CategoryProductModule } from './categories/category.module';
+import { PrismaService } from './prisma/prisma.service';
+import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
+import { APP_GUARD } from '@nestjs/core';
+import { DirecteSaleModule } from './directSale/directSalt.module';
+import { CustomerModule } from './customer/customer.module';
+import { CreditPaymentModule } from './creditPayment/creditPayment.module';
 
 @Module({
   imports: [
@@ -26,8 +32,18 @@ import { CategoryProductModule } from './categories/category.module';
     OderModule,
     InvoiceModule,
     CategoryProductModule,
+    DirecteSaleModule,
+    CustomerModule,
+    CreditPaymentModule,
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    PrismaService,
+    {
+      provide: APP_GUARD,
+      useClass: JwtAuthGuard,
+    },
+  ],
 })
 export class AppModule {}

@@ -29,6 +29,8 @@ import { PaginateDto } from '../../application/dtos/paginate-user.dto';
 import { PaginateUserUseCase } from '../../application/usecases/paginate-user.usecase';
 import { FilterUserUseCase } from '../../application/usecases/filter-user.usecase';
 import { FilterUserDto } from '../../application/dtos/filter-user.dto';
+import { UserRole } from '../../domain/enums/role.enum';
+import { PaginateUserQueryDto } from '../../application/dtos/paginateUserQuery.dto';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
@@ -114,7 +116,27 @@ export class UserController {
   }
   @Get('paginate')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Paginer les livraisons' })
+  @ApiOperation({
+    summary: 'Paginer les utilisateurs avec des recherches multi-critères',
+  })
+  @ApiQuery({
+    name: 'name',
+    required: false,
+    type: String,
+    description: "Nom de l'utilisateur",
+  })
+  @ApiQuery({
+    name: 'email',
+    required: false,
+    type: String,
+    description: "Adresse email de l'utilisateur",
+  })
+  @ApiQuery({
+    name: 'phone',
+    required: false,
+    type: String,
+    description: "Numéro de téléphone de l'utilisateur",
+  })
   @ApiQuery({
     name: 'page',
     required: false,
@@ -127,17 +149,23 @@ export class UserController {
     type: Number,
     description: "Nombre d'éléments par page (par défaut: 2)",
   })
+  @ApiQuery({
+    name: 'role',
+    required: false,
+    enum: UserRole,
+    description: 'Rôle de l’utilisateur',
+  })
   @ApiResponse({
     status: 200,
-    description: 'Liste paginée des livraisons',
+    description: 'Liste paginée des utilisateurs',
     schema: {
       example: {
         data: [
           {
             id: 1,
-            supplierId: 'uuid',
-            createdAt: '2025-06-11T12:00:00.000Z',
-            updatedAt: '2025-06-11T12:00:00.000Z',
+            name: 'John Doe',
+            email: 'john@example.com',
+            role: 'MANAGER',
           },
         ],
         total: 12,
@@ -147,14 +175,21 @@ export class UserController {
       },
     },
   })
-  async paginate(@Query() query: PaginateDto) {
-    return await this.paginateUserUseCase.execute(query.limit, query.page);
+  async paginate(@Query() query: PaginateUserQueryDto) {
+    const { page = '1', limit = '2', role, ...search } = query;
+    return await this.paginateUserUseCase.execute(
+      Number(page),
+      Number(limit),
+      search,
+      role,
+    );
   }
+
   @Public()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Get(':id')
   @ApiOperation({
-    summary: "Récupérer le user par son ID",
+    summary: 'Récupérer le user par son ID',
   })
   @ApiResponse({
     status: 200,

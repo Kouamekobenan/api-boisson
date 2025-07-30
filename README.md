@@ -1,7 +1,6 @@
 <p align="center">
   <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
 </p>
-
 [circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
 [circleci-url]: https://circleci.com/gh/nestjs/nest
 
@@ -24,13 +23,105 @@
 
 ## Description
 
+# 📦 MonDepot — Application de Gestion de Livraison
+
+**MonDepot** est une application web moderne conçue pour automatiser la gestion des produits, des fournisseurs, des livraisons et des commandes dans un dépôt. Elle facilite le suivi du stock en temps réel, la création de commandes, la facturation et la gestion des utilisateurs avec des rôles spécifiques.
+
+---
+
+## 🚀 Fonctionnalités Clés
+
+- 📦 Gestion des **produits** : seuil critique, prix d'achat, prix de vente, stock
+- 🏷️ Catégorisation des produits
+- 🤝 Gestion des **fournisseurs**
+- 📈 Suivi des **mouvements de stock** (entrée, sortie, retour)
+- 🚚 Gestion des **livraisons** (suivi, retours, quantités livrées)
+- 🧍‍♂️ Gestion des **livreurs**
+- 🧾 Création de **commandes** et génération de **factures**
+- 🔐 Authentification avec gestion de **rôles** (`ADMIN`, `MANAGER`, `DELIVERY_PERSON`)
+- 📊 Tableaux de bord et statistiques
+
+---
+
+## 🧱 Stack Technique
+
+| Composant        | Technologie                                   |
+| ---------------- | --------------------------------------------- |
+| Frontend         | Next.js + Tailwind CSS                        |
+| Backend          | NestJS                                        |
+| Base de données  | PostgreSQL                                    |
+| ORM              | Prisma                                        |
+| Authentification | JWT + Guards NestJS                           |
+| Hébergement      | Vercel (Frontend), Railway / Render (Backend) |
+
+---
+
+## 🔧 Modèle de données (Prisma)
+
+Voici les principales entités de la base :
+
+### 🛒 Product
+
+- `name`, `description`, `price`, `stock`, `criticalStockThreshold`
+- Lié à : `Supplier`, `CategoryProduct`, `StockMovement`, `DeliveryProduct`, `OrderItem`
+
+### 🏷️ CategoryProduct
+
+- `name` unique
+- Plusieurs `Product`
+
+### 🚚 Delivery & DeliveryProduct
+
+- `Delivery`: avec `status`, `deliveryPerson`, `createdAt`
+- `DeliveryProduct`: lien `product`, `quantity`, `returnedQuantity`
+
+### 🏭 Supplier
+
+- `name`, `email`, `phone`
+- Un fournisseur peut avoir plusieurs produits
+
+### 🔁 StockMovement
+
+- `type`: `ENTRY`, `EXIT`, `RETURN`
+- Lié à un `product` et éventuellement une `delivery`
+
+### 🧍‍♂️ DeliveryPerson
+
+- `name`, `phone`
+- Affecté à plusieurs `Delivery`
+
+### 👤 User
+
+- `email`, `password`, `role` (`ADMIN`, `MANAGER`, `DELIVERY_PERSON`)
+- Crée des `Order`
+
+### 🧾 Order & OrderItem
+
+- `Order`: contient plusieurs `OrderItem`, lié à un `User`
+- `OrderItem`: quantité, prix unitaire, prix total
+
+### 📑 Invoice
+
+- Liée à une `Order`, contient le `totalPrice`
+
+---
+
+## 🛠️ Installation et Lancement
+
+### 1. Cloner le projet
+
+````bash
+git clone https://github.com/Kouamekobenan/api-boisson.git
+cd my-backend
+
+
 [Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
 
 ## Project setup
 
 ```bash
 $ npm install
-```
+````
 
 ## Compile and run the project
 
@@ -46,6 +137,7 @@ $ npm run start:prod
 ```
 
 ## Run tests
+
 ```bash
 # unit tests
 $ npm run test
@@ -68,37 +160,12 @@ $ npm install -g mau
 $ mau deploy
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+## ACCES DE MANAGER
 
-## Resources
+PASSWORD: ``NONO12
 
-Check out a few resources that may come in handy when working with NestJS:
+EMAIL: `` nono12@gmail.com
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+## Faire migrer la BD sur Render
 
-## Support
-
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
-
-## Stay in touch
-
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
-
-## License
-
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
-## PASS WORD
-NONO12
-## EMAIL
-nono12@gmail.com
-## Faire migrer la BD SUR Rend
- pg_dump -U postgres -d domini -f dump.sql
+pg_dump -U postgres -d domini -f dump.sql
