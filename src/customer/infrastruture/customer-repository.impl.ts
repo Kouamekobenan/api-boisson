@@ -114,4 +114,15 @@ export class CustomerRepository implements ICustomerRepository {
       });
     }
   }
+  async findAll(): Promise<Customer[]> {
+    try {
+      const customers = await this.prisma.customer.findMany({
+        orderBy: { createdAt: 'desc' },
+      });
+      
+      return customers.map((customer) => this.mapper.toEntity(customer))
+    } catch (error) {
+      throw new BadRequestException('Failled to retrieve customers')
+    }
+  }
 }

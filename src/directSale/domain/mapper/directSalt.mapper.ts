@@ -7,9 +7,13 @@ import {
 import { DirectSaleItem } from '../entities/directSaleItem.entity';
 import { CreateDirectSaleDto } from 'src/directSale/application/dtos/directSale/create-directSale.dto';
 import { DirectSaleItemDto } from 'src/directSale/application/dtos/directSaleItem/create-directSale.dto';
+import { Customer } from 'src/customer/domain/entities/customer.entity';
 export class DirectSaleMapper {
   toEntity(
-    prismaModel: PrismaEntity & { saleItems?: PrismaItem[] },
+    prismaModel: any & {
+      saleItems?: any[];
+      customer?: Customer | null;
+    },
   ): DirectSale {
     const saleItems = (prismaModel.saleItems || []).map(
       (item) =>
@@ -19,6 +23,7 @@ export class DirectSaleMapper {
           item.productId,
           Number(item.quantity),
           Number(item.unitPrice),
+          item.product?.name,
         ),
     );
     return new DirectSale(
@@ -32,6 +37,7 @@ export class DirectSaleMapper {
       saleItems,
       prismaModel.createdAt,
       prismaModel.updatedAt,
+      prismaModel.customer ?? undefined,
     );
   }
   toPersistence(createDto: CreateDirectSaleDto): Prisma.DirectSaleCreateInput {

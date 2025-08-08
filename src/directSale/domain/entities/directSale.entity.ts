@@ -1,10 +1,5 @@
+import { Customer } from 'src/customer/domain/entities/customer.entity';
 import { DirectSaleItem } from './directSaleItem.entity';
-
-type InfoUser = {
-  userName?: string;
-  userMail?: string;
-  userPhone?: string;
-};
 export class DirectSale {
   constructor(
     private readonly id: string,
@@ -17,7 +12,7 @@ export class DirectSale {
     private saleItems: DirectSaleItem[] = [],
     private createdAt: Date,
     private updatedAt: Date,
-    private user?: InfoUser,
+    private customer?: Customer | null,
   ) {
     if (amountPaid + dueAmount !== totalPrice) {
       throw new Error('Montant incohérent.');

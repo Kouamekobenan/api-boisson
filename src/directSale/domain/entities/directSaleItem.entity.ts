@@ -5,6 +5,7 @@ export class DirectSaleItem {
     private readonly productId: string,
     private quantity: number,
     private unitPrice: number,
+    private productName?:string,
   ) {
     if (quantity <= 0) throw new Error('La quantité doit être positive');
     if (unitPrice <= 0) throw new Error('Le prix unitaire doit être positif');
@@ -25,6 +26,9 @@ export class DirectSaleItem {
   // GETTERS
   get Id(): string {
     return this.id;
+  }
+  get ProductName():string{
+    return this.ProductName
   }
   get DirectSaleId(): string {
     return this.directSaleId;

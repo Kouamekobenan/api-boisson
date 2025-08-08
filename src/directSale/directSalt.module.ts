@@ -9,6 +9,7 @@ import { FindDirecteSaleByIdUseCase } from './application/usecases/find-byId.use
 import { PaginateDirecteSaleUseCase } from './application/usecases/paginate-directeSale.usecase';
 import { FindAllDirecteSaleUseCase } from './application/usecases/findAll-directeSale.usecase';
 import { DeleteDireteSaleUseCase } from './application/usecases/delete-directeSale';
+import { FindCreditSaleUseCase } from './application/usecases/CreditSale.usecase';
 
 @Module({
   controllers: [DirectSaleController],
@@ -28,6 +29,7 @@ import { DeleteDireteSaleUseCase } from './application/usecases/delete-directeSa
     PaginateDirecteSaleUseCase,
     FindAllDirecteSaleUseCase,
     DeleteDireteSaleUseCase,
+    FindCreditSaleUseCase,
   ],
   exports: [],
 })

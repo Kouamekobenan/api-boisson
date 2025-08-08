@@ -33,6 +33,7 @@ import { UpdateCustomerDto } from '../application/dtos/update-customer.dto';
 import { DeleteCustomerUseCase } from '../application/usecases/delete-customer.usecase';
 import { PaginateCustomerDto } from '../application/dtos/paginate-customer.dto';
 import { PaginationCustomerUseCase } from '../application/usecases/paginate-customer.usecase';
+import { FindAllCustomerUseCase } from '../application/usecases/find_all.usecase';
 
 @Controller('customer')
 @ApiTags('Customer')
@@ -44,6 +45,7 @@ export class CustomerController {
     private readonly updateCustomerUseCase: UpdateCustomerUseCase,
     private readonly deleteCustomerUseCase: DeleteCustomerUseCase,
     private readonly paginateCustomerUseCase: PaginationCustomerUseCase,
+    private readonly findAllCustomerUseCase: FindAllCustomerUseCase,
   ) {}
 
   @Post()
@@ -173,5 +175,10 @@ export class CustomerController {
   })
   async deleteCustomer(@Param('id') id: string) {
     return await this.deleteCustomerUseCase.execute(id);
+  }
+  @Get()
+  @ApiOperation({ summary: 'Récuperer tous les clients' })
+  async findAll(): Promise<Customer[]> {
+    return await this.findAllCustomerUseCase.execute();
   }
 }

@@ -9,7 +9,6 @@ import { PrismaService } from 'src/prisma/prisma.service';
 import { CreditPaymentMapper } from '../domain/mappers/creditPayment.mapper';
 import { CreateCreditPaymentDto } from '../application/dtos/create-creditPayment.dto';
 import { CreditPayment } from '../domain/entities/creditPayment.entity';
-import { SuccessResponse } from 'src/common/types/response-controller.type';
 import { PaginatedResponseRepository } from 'src/common/types/response-respository';
 import { UpdateCreditPaymentDto } from '../application/dtos/update-creditPayment';
 @Injectable()
@@ -22,13 +21,15 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
   async create(dto: CreateCreditPaymentDto): Promise<CreditPayment> {
     try {
       const creditPayment = this.mapper.toPersistence(dto);
+
       const result = await this.prisma.$transaction(async (tx) => {
-        // Create
+        // 1. Create the payment
         const createCreditPayment = await tx.creditPayment.create({
           data: creditPayment,
         });
-        // Update
-        const updateSale = await tx.directSale.update({
+
+        // 2. Update the sale (increment amountPaid, decrement dueAmount)
+        const updatedSale = await tx.directSale.update({
           where: { id: dto.directSaleId },
           data: {
             dueAmount: {
@@ -40,19 +41,31 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
           },
         });
 
-        this.logger.log(`Updated dueAmount: ${updateSale.dueAmount}`);
+        // 3. Si la dette est soldée, isCredit => false
+        //  -Number(dto.amount);
+        if (Number(updatedSale.dueAmount)<= 0) {
+          await tx.directSale.update({
+            where: { id: dto.directSaleId },
+            data: {
+              isCredit: false,
+            },
+          });
+        }
+
+        this.logger.log(`Updated dueAmount: ${updatedSale.dueAmount}`);
         return this.mapper.toEntity(createCreditPayment);
       });
 
       return result;
     } catch (error) {
-      this.logger.error(`Failled to created creditPayment ${error.message}`);
-      throw new BadRequestException(`Failled to create createPayment`, {
+      this.logger.error(`Failed to create creditPayment ${error.message}`);
+      throw new BadRequestException(`Failed to create creditPayment`, {
         cause: error,
         description: error.message,
       });
     }
   }
+
   async findById(id: string): Promise<CreditPayment> {
     try {
       const creditPayment = await this.prisma.creditPayment.findUnique({
@@ -86,6 +99,11 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
       const skip = (page - 1) * limit;
       const [creaditPayments, total] = await Promise.all([
         this.prisma.creditPayment.findMany({
+          include: {
+            directSale: {
+              select: { amountPaid: true, dueAmount: true, totalPrice: true },
+            },
+          },
           skip,
           take: limit,
           orderBy: { paidAt: 'desc' },

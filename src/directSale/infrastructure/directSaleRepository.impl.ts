@@ -28,7 +28,6 @@ export class DirectSaleRepository implements IDirectSaleRepository {
       const directSaleDto = this.mapper.toPersistence(createDto);
       const result = await this.prisma.$transaction(async (tx) => {
         // Création de la vente
-
         const createDirectSale = await tx.directSale.create({
           data: {
             ...directSaleDto,
@@ -67,9 +66,10 @@ export class DirectSaleRepository implements IDirectSaleRepository {
       const directeSale = await this.prisma.directSale.findUnique({
         where: { id },
         include: {
-          saleItems: true,
-          seller: {
-            select: { name: true, phone: true },
+          saleItems: {
+            include: {
+              product: { select: { name: true } },
+            },
           },
         },
       });
@@ -96,7 +96,9 @@ export class DirectSaleRepository implements IDirectSaleRepository {
         this.prisma.directSale.findMany({
           include: {
             saleItems: true,
-            seller: true,
+            customer: {
+              select: { name: true },
+            },
           },
           skip: skip,
           take: limit,
@@ -125,9 +127,25 @@ export class DirectSaleRepository implements IDirectSaleRepository {
     }
   }
   async findAll(): Promise<DirectSale[]> {
+    const today = new Date();
+    const start = new Date(today.setHours(0, 0, 0, 0));
+    const end = new Date(today.setHours(23, 59, 59, 999));
     try {
       const directeSales = await this.prisma.directSale.findMany({
-        include: { saleItems: true, seller: true },
+        where: {
+          createdAt: {
+            gte: start,
+            lte: end,
+          },
+        },
+        include: {
+          saleItems: {
+            include: {
+              product: { select: { name: true } },
+            },
+          },
+          customer: { select: { name: true } },
+        },
         orderBy: { createdAt: 'desc' },
       });
       const directeSaleMap = directeSales.map((directeSale) =>
@@ -144,10 +162,42 @@ export class DirectSaleRepository implements IDirectSaleRepository {
   }
   async delete(id: string): Promise<void> {
     try {
-       await this.prisma.directSale.delete({where:{id}})
-
+      await this.prisma.directSale.delete({ where: { id } });
     } catch (error) {
-      throw new BadRequestException(`Failled to delete directe sale with ID:${id}`)
+      throw new BadRequestException(
+        `Failled to delete directe sale with ID:${id}`,
+      );
+    }
+  }
+  async findCreditSale(
+    limit: number = 1,
+    page: number = 10,
+  ): Promise<PaginatedResponseRepository<DirectSale>> {
+    try {
+      const skip = (Number(page) - 1) * Number(limit);
+      const [directeSales, total] = await Promise.all([
+        this.prisma.directSale.findMany({
+          where: { isCredit: true },
+          include: { saleItems: true, customer: { select: { name: true } } },
+          skip,
+          take: Number(limit),
+          orderBy: { createdAt: 'desc' },
+        }),
+        this.prisma.directSale.count({ where: { isCredit: true } }),
+      ]);
+      const salesMap = directeSales.map((sale) => this.mapper.toEntity(sale));
+      return {
+        data: salesMap,
+        total,
+        totalPages: limit > 1 ? Math.ceil(total / limit) : 1,
+        page,
+        limit,
+      };
+    } catch (error) {
+      throw new BadRequestException(
+        'Failled to retrieve sale with credit',
+        error,
+      );
     }
   }
 }

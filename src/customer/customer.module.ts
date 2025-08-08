@@ -9,6 +9,7 @@ import { FindByIdCustomerUseCase } from './application/usecases/find-by-id.useca
 import { UpdateCustomerUseCase } from './application/usecases/update-customer.usecase';
 import { DeleteCustomerUseCase } from './application/usecases/delete-customer.usecase';
 import { PaginationCustomerUseCase } from './application/usecases/paginate-customer.usecase';
+import { FindAllCustomerUseCase } from './application/usecases/find_all.usecase';
 
 @Module({
   controllers: [CustomerController],
@@ -28,6 +29,7 @@ import { PaginationCustomerUseCase } from './application/usecases/paginate-custo
     UpdateCustomerUseCase,
     DeleteCustomerUseCase,
     PaginationCustomerUseCase,
+    FindAllCustomerUseCase,
   ],
   exports: [],
 })

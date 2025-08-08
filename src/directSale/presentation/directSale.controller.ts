@@ -29,6 +29,8 @@ import { PaginateDirecteSaleUseCase } from '../application/usecases/paginate-dir
 import { PaginateDirecteSaleDto } from '../application/dtos/directSale/paginate.dto';
 import { FindAllDirecteSaleUseCase } from '../application/usecases/findAll-directeSale.usecase';
 import { DeleteDireteSaleUseCase } from '../application/usecases/delete-directeSale';
+import { FindCreditSaleUseCase } from '../application/usecases/CreditSale.usecase';
+import { query } from 'express';
 @Public()
 @Controller('directeSale')
 @ApiTags('DirecteSale')
@@ -39,6 +41,7 @@ export class DirectSaleController {
     private readonly paginateDirecteSaleUseCase: PaginateDirecteSaleUseCase,
     private readonly findAllDirecteSaleUseCase: FindAllDirecteSaleUseCase,
     private readonly deleteDireteSaleUseCase: DeleteDireteSaleUseCase,
+    private readonly findCreditSaleUseCase: FindCreditSaleUseCase,
   ) {}
 
   @Post()
@@ -58,6 +61,37 @@ export class DirectSaleController {
   ): Promise<SuccessResponse<DirectSale>> {
     const directeSale = await this.createDirecteSaleUseCase.execute(createDto);
     const response = ResponseHelper.success(directeSale);
+    return response;
+  }
+
+  @Get('credit')
+  @ApiOperation({ summary: 'Pagination des ventes directes à crédit' })
+  @ApiQuery({
+    name: 'page',
+    required: false,
+    description: 'Numéro de page',
+    example: 1,
+  })
+  @ApiQuery({
+    name: 'limit',
+    required: false,
+    description: 'Nombre d’éléments par page',
+    example: 10,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Liste paginée des ventes directes à crédit.',
+  })
+  async findCreditSale(@Query() query: PaginateDirecteSaleDto) {
+    const { data, total, page, limit } =
+      await this.findCreditSaleUseCase.execute(query.limit, query.page);
+    const response = ResponseHelper.paginated(
+      data,
+      total,
+      page,
+      limit,
+      'Directe paginate data credit:',
+    );
     return response;
   }
 
@@ -81,8 +115,10 @@ export class DirectSaleController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async paginate(@Query() query: PaginateDirecteSaleDto) {
+    const limitNumber = Number(query.limit);
+    const pageNumber = Number(query.page);
     const { data, total, page, limit } =
-      await this.paginateDirecteSaleUseCase.execute(query.limit, query.page);
+      await this.paginateDirecteSaleUseCase.execute(limitNumber, pageNumber);
     const response = ResponseHelper.paginated(
       data,
       total,

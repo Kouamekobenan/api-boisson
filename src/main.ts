@@ -58,8 +58,8 @@ async function bootstrap() {
 
   // ✅ Swagger config
   const config = new DocumentBuilder()
-    .setTitle('Api DrinkFlow')
-    .setDescription('API de gestion immobilière')
+    .setTitle('Api MonDepot')
+    .setDescription('API de gestion comptable: Gerer les livreurs et les livraison')
     .setVersion('1.0')
     .addBearerAuth(
       {
