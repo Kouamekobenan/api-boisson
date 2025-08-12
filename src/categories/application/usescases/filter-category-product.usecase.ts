@@ -11,9 +11,9 @@ export class FilterCategoryProductUseCase {
     @Inject(CategoryProductRepositoyName)
     private readonly categoryRepository: ICategoryProductRepository,
   ) {}
-  async execute(filter: CategoryProductDto, limit: number, page: number) {
+  async execute(tenantId:string, filter: CategoryProductDto, limit: number, page: number) {
     try {
-      const filters = await this.categoryRepository.filter(filter, limit, page);
+      const filters = await this.categoryRepository.filter(tenantId, filter, limit, page);
       return filters;
     } catch (error) {
       throw new BadRequestException('Failed to filter category product', {

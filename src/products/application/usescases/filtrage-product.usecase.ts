@@ -15,9 +15,19 @@ export class FiterProductUseCase {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
   ) {}
-  async execute(input: FilterProductDto, page?: number, limit?: number) {
+  async execute(
+    tenantId: string,
+    input: FilterProductDto,
+    page?: number,
+    limit?: number,
+  ) {
     try {
-      const products = await this.productRepository.filter(input, page, limit);
+      const products = await this.productRepository.filter(
+        tenantId,
+        input,
+        page,
+        limit,
+      );
       this.logger.log('data filters!:', JSON.stringify(products));
       return products;
     } catch (error) {

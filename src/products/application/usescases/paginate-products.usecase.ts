@@ -8,9 +8,14 @@ export class PaginateProductUseCase {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
   ) {}
-  async execute(limit: number, page: number) {
+
+  async execute(tenantId: string, limit: number, page: number) {
     try {
-      const products = await this.productRepository.paginate(limit, page);
+      const products = await this.productRepository.paginate(
+        tenantId,
+        limit,
+        page,
+      );
       return products;
     } catch (error) {
       throw new BadRequestException('Failed to paginate products', {

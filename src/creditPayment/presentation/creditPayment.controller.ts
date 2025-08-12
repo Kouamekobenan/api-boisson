@@ -70,7 +70,7 @@ export class CreaditPaymentController {
     );
     return response;
   }
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Récupérer les paiements de crédit paginés' })
   @ApiQuery({
@@ -94,10 +94,15 @@ export class CreaditPaymentController {
     isArray: true,
   })
   async paginate(
+    @Param('tenantId') tenantId: string,
     @Query() query: PaginateCustomerDto,
   ): Promise<PaginatedResponse<CreditPayment>> {
     const { data, total, page, limit } =
-      await this.paginateCreditPaymentUseCase.execute(query.limit, query.page);
+      await this.paginateCreditPaymentUseCase.execute(
+        tenantId,
+        query.limit,
+        query.page,
+      );
 
     const response = ResponseHelper.paginated(
       data,

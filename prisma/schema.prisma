@@ -7,6 +7,28 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model Tenant {
+  id        String   @id @default(uuid())
+  name      String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  products          Product[]
+  categoryProducts  CategoryProduct[]
+  deliveryProducts  DeliveryProduct[]
+  suppliers         Supplier[]
+  stockMovements    StockMovement[]
+  deliveryPersons   DeliveryPerson[]
+  deliveries        Delivery[]
+  invoices          Invoice[]
+  users             User[]
+  orders            Order[]
+  orderItems        OrderItem[]
+  customers         Customer[]
+  directSales       DirectSale[]
+  directSaleItems   DirectSaleItem[]
+  creditPayments    CreditPayment[]
+}
+
 model Product {
   id                     String            @id @default(uuid())
   name                   String
@@ -23,6 +45,8 @@ model Product {
   directSaleItems        DirectSaleItem[]
   categoryProductId      String?
   categoryProduct        CategoryProduct?  @relation(fields: [categoryProductId], references: [id], onDelete: SetNull)
+  tenantId               String?
+  tenant                 Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt              DateTime          @default(now())
   updatedAt              DateTime          @updatedAt
 }
@@ -30,7 +54,9 @@ model Product {
 model CategoryProduct {
   id        String    @id @default(uuid())
   name      String    @unique
-  products  Product[] // Relation avec les produits
+  products  Product[]
+  tenantId  String?
+  tenant    Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -41,9 +67,11 @@ model DeliveryProduct {
   delivery          Delivery @relation(fields: [deliveryId], references: [id], onDelete: Cascade)
   productId         String
   product           Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  quantity          Decimal // Quantité du produit livré
+  quantity          Decimal
   deliveredQuantity Decimal  @default(0)
   returnedQuantity  Decimal  @default(0)
+  tenantId        String?
+  tenant          Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt         DateTime @default(now())
 
   @@unique([deliveryId, productId])
@@ -55,6 +83,8 @@ model Supplier {
   email     String?
   phone     String?
   products  Product[]
+  tenantId  String?
+  tenant    Tenant?    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 }
@@ -70,6 +100,8 @@ model StockMovement {
   delivery     Delivery?   @relation("StockMovementDelivery", fields: [deliveryId], references: [id])
   directSaleId String?
   directSale   DirectSale? @relation(fields: [directSaleId], references: [id])
+  tenantId     String?
+  tenant       Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 enum StockType {
@@ -83,6 +115,8 @@ model DeliveryPerson {
   name       String
   phone      String?
   deliveries Delivery[]
+  tenantId   String?
+  tenant     Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt  DateTime   @default(now())
   updatedAt  DateTime   @updatedAt
 }
@@ -95,6 +129,8 @@ model Delivery {
   createdAt        DateTime          @default(now())
   deliveryProducts DeliveryProduct[]
   stockMovements   StockMovement[]   @relation("StockMovementDelivery")
+  tenantId         String?
+  tenant           Tenant?            @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 enum DeliveryStatus {
@@ -109,6 +145,8 @@ model Invoice {
   orderId    String?  @unique
   order      Order?   @relation(fields: [orderId], references: [id], onDelete: Cascade, map: "OrderToInvoice")
   totalPrice Decimal
+  tenantId   String?
+  tenant     Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
 }
@@ -120,11 +158,13 @@ model User {
   name          String?
   phone         String?
   role          UserRole
-  orders        Order[] // Relation inverse
+  orders        Order[]
   createdAt     DateTime     @default(now())
   updatedAt     DateTime     @updatedAt
   lastActiveAt  DateTime?
   salesAsSeller DirectSale[] @relation("Seller")
+  tenantId      String?
+  tenant        Tenant?       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 enum UserRole {
@@ -142,6 +182,8 @@ model Order {
   totalPrice Decimal
   orderItems OrderItem[]
   invoice    Invoice?
+  tenantId   String?
+  tenant     Tenant?      @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt  DateTime    @default(now())
   updatedAt  DateTime    @updatedAt
 }
@@ -163,6 +205,8 @@ model OrderItem {
   quantity   Decimal
   unitPrice  Decimal
   totalPrice Decimal
+  tenantId   String?
+  tenant     Tenant?  @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model Customer {
@@ -172,6 +216,8 @@ model Customer {
   email     String?      @unique
   address   String?
   sales     DirectSale[]
+  tenantId  String?
+  tenant    Tenant?       @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime     @default(now())
   updatedAt DateTime     @updatedAt
 }
@@ -182,16 +228,15 @@ model DirectSale {
   seller     User?     @relation("Seller", fields: [sellerId], references: [id], onDelete: SetNull)
   customerId String?
   customer   Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-
   totalPrice Decimal
   isCredit   Boolean @default(false)
   amountPaid Decimal @default(0)
   dueAmount  Decimal @default(0)
-
   saleItems      DirectSaleItem[]
   payments       CreditPayment[]
   stockMovements StockMovement[]
-
+  tenantId       String?
+  tenant         Tenant?   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -205,6 +250,8 @@ model DirectSaleItem {
   quantity     Decimal
   unitPrice    Decimal
   totalPrice   Decimal
+  tenantId     String?
+  tenant       Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
 }
 
 model CreditPayment {
@@ -212,5 +259,7 @@ model CreditPayment {
   directSaleId String
   directSale   DirectSale @relation(fields: [directSaleId], references: [id], onDelete: Cascade)
   amount       Decimal
+  tenantId     String?
+  tenant       Tenant?     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
   paidAt       DateTime   @default(now())
 }

@@ -67,7 +67,7 @@ export class OrderController {
     return { mess: 'order is delete with succefully!' };
   }
 
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @ApiOperation({ summary: 'Paginer la liste des produits' })
   @ApiQuery({ name: 'page', required: true, type: Number, example: 1 })
   @ApiQuery({ name: 'limit', required: true, type: Number, example: 10 })
@@ -99,8 +99,17 @@ export class OrderController {
     },
   })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async paginate(@Query() query: PaginateDto) {
-    return await this.paginateOrderUseCase.execute(query.page, query.limit, query.search, query.status);
+  async paginate(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateDto,
+  ) {
+    return await this.paginateOrderUseCase.execute(
+      tenantId,
+      query.page,
+      query.limit,
+      query.search,
+      query.status,
+    );
   }
 
   @Get(':id')

@@ -10,12 +10,14 @@ export class FilterUserUseCase {
     private readonly userRepository: IUserRepository,
   ) {}
   async execute(
+    tenantId: string,
     filter: FilterUserDto,
     limit: number,
     page: number,
   ): Promise<{ data: User[]; limit: number; page: number }> {
     try {
       const FilterUserDto = await this.userRepository.filter(
+        tenantId,
         filter,
         limit,
         page,

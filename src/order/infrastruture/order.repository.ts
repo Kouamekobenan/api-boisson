@@ -23,86 +23,48 @@ export class OrderRepository implements IOrderRepository {
     try {
       const dataToapplication = await this.mapper.toApplication(data);
 
-      for (const item of dataToapplication.orderItems) {
-        const product = await this.prisma.product.findUnique({
-          where: { id: item.productId },
-          select: { stock: true },
-        });
+      // Vérifier que l'utilisateur existe
+      const existUser = await this.prisma.user.findUnique({
+        where: { id: dataToapplication.userId },
+      });
 
-        if (!product) {
-          throw new BadRequestException(
-            `Le produit ${item.productId} n'existe pas.`,
-          );
-        }
-
-        if (product.stock < item.quantity) {
-          throw new BadRequestException(
-            `Stock insuffisant pour le produit ${item.productId}. Stock actuel : ${product.stock}, demandé : ${item.quantity}`,
-          );
-        }
+      if (!existUser) {
+        throw new NotFoundException(`Cet utilisateur n'existe pas`);
       }
 
-      const result = await this.prisma.$transaction(async (prisma) => {
-        const existUser = await this.prisma.user.findUnique({
-          where: { id: dataToapplication.userId },
-        });
-
-        if (!existUser) {
-          throw new NotFoundException(
-            `cet utilisteur n\'exist pas ${existUser}`,
-          );
-        }
-        // Création de la commande
-        const newOrder = await prisma.order.create({
-          data: {
-            ...dataToapplication,
-            orderItems: {
-              create: dataToapplication.orderItems.map(
-                (items: OrderItemDto) => ({
-                  productId: items.productId,
-                  quantity: items.quantity,
-                  unitPrice: items.unitPrice,
-                  totalPrice: items.quantity * items.unitPrice,
-                }),
-              ),
-            },
+      // Création de la commande sans toucher au stock
+      const newOrder = await this.prisma.order.create({
+        data: {
+          ...dataToapplication,
+          status: OrderStatus.PENDING, // par défaut
+          orderItems: {
+            create: dataToapplication.orderItems.map((items: OrderItemDto) => ({
+              productId: items.productId,
+              quantity: items.quantity,
+              unitPrice: items.unitPrice,
+              totalPrice: items.quantity * items.unitPrice,
+            })),
           },
-          include: { orderItems: true },
-        });
-
-        if (!newOrder || !newOrder.id) {
-          throw new BadRequestException(
-            'erreur lors de la creation de commande',
-          );
-        }
-        // calcule le prix total
-        const totalPrices = newOrder.orderItems.reduce(
-          (t, i) => t + i.totalPrice.toNumber(),
-          0,
-        );
-        const updateOrderTotalPrice = await prisma.order.update({
-          where: { id: newOrder.id },
-          data: {
-            totalPrice: totalPrices,
-          },
-          include: {
-            orderItems: true,
-          },
-        });
-        // Mise à jour du stock des produits
-        for (const item of dataToapplication.orderItems) {
-          await prisma.product.update({
-            where: { id: item.productId },
-            data: { stock: { decrement: item.quantity } },
-          });
-        }
-
-        return updateOrderTotalPrice;
+        },
+        include: { orderItems: true },
       });
-      return this.mapper.toDomain(result);
+
+      // Calcul du prix total
+      const totalPrices = newOrder.orderItems.reduce(
+        (t, i) => t + i.totalPrice.toNumber(),
+        0,
+      );
+
+      const updatedOrder = await this.prisma.order.update({
+        where: { id: newOrder.id },
+        data: { totalPrice: totalPrices },
+        include: { orderItems: true },
+      });
+
+      return this.mapper.toDomain(updatedOrder);
     } catch (error) {
-      console.error('error repo:', error);
-      throw new BadRequestException(`la création de la vente à échoué!`);
+      this.logger.error('Erreur création commande', error);
+      throw new BadRequestException(`La création de la commande a échoué !`);
     }
   }
 
@@ -148,6 +110,7 @@ export class OrderRepository implements IOrderRepository {
     }
   }
   async paginate(
+    tenantId: string,
     page: number,
     limit: number,
     search?: string,
@@ -163,7 +126,7 @@ export class OrderRepository implements IOrderRepository {
       const skip = (page - 1) * limit;
 
       // Construction du filtre dynamique
-      const where: any = {};
+      const where: any = { tenantId };
 
       if (search) {
         where.id = {
@@ -230,15 +193,40 @@ export class OrderRepository implements IOrderRepository {
   }
   async validate(id: string): Promise<OrderEntity> {
     try {
-      const validateOrder = await this.prisma.order.update({
+      // Récupérer la commande avec ses items
+      const order = await this.prisma.order.findUnique({
         where: { id },
-        data: {
-          status: 'COMPLETED',
-        },
+        include: { orderItems: true },
       });
-      return this.mapper.toDomain(validateOrder);
+
+      if (!order) {
+        throw new NotFoundException(`Commande ${id} introuvable`);
+      }
+
+      if (order.status !== OrderStatus.PENDING) {
+        throw new BadRequestException(
+          `Seules les commandes PENDING peuvent être validées`,
+        );
+      }
+
+      // Mise à jour du stock
+      for (const item of order.orderItems) {
+        await this.prisma.product.update({
+          where: { id: item.productId },
+          data: { stock: { increment: Number(item.quantity) } },
+        });
+      }
+
+      // Changer le statut
+      const validatedOrder = await this.prisma.order.update({
+        where: { id },
+        data: { status: OrderStatus.COMPLETED },
+        include: { orderItems: true },
+      });
+
+      return this.mapper.toDomain(validatedOrder);
     } catch (error) {
-      throw new BadRequestException('Failled to completed order', {
+      throw new BadRequestException('Échec de la validation de la commande', {
         cause: error,
         description: error.message,
       });

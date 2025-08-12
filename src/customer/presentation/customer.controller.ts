@@ -63,7 +63,7 @@ export class CustomerController {
     return response;
   }
 
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @ApiOperation({ summary: 'Lister les clients avec pagination' })
   @ApiQuery({
     name: 'page',
@@ -104,9 +104,12 @@ export class CustomerController {
   })
   @ApiBadRequestResponse({ description: 'Requête invalide' })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async paginate(@Query() dto: PaginateCustomerDto) {
+  async paginate(
+    @Param('tenantId') tenantId: string,
+    @Query() dto: PaginateCustomerDto,
+  ) {
     const { data, total, page, limit } =
-      await this.paginateCustomerUseCase.execute(dto.limit, dto.page);
+      await this.paginateCustomerUseCase.execute(tenantId, dto.limit, dto.page);
     const response = ResponseHelper.paginated(data, total, page, limit);
     return response;
   }
@@ -176,9 +179,9 @@ export class CustomerController {
   async deleteCustomer(@Param('id') id: string) {
     return await this.deleteCustomerUseCase.execute(id);
   }
-  @Get()
+  @Get('tenant/:tenantId')
   @ApiOperation({ summary: 'Récuperer tous les clients' })
-  async findAll(): Promise<Customer[]> {
-    return await this.findAllCustomerUseCase.execute();
+  async findAll(@Param('tenantId') tenantId: string): Promise<Customer[]> {
+    return await this.findAllCustomerUseCase.execute(tenantId);
   }
 }

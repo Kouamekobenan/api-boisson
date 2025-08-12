@@ -50,7 +50,6 @@ export class DeliveryRepository implements IDeliveryRepository {
           },
         });
       }
-      console.log('Delivery Products reçus:', data.deliveryProducts);
       const newDelivery = await this.prisma.delivery.create({
         data: {
           // ...isDelivery,
@@ -58,11 +57,13 @@ export class DeliveryRepository implements IDeliveryRepository {
           deliveryPerson: {
             connect: { id: deliveryPersonId },
           },
+          tenant: { connect: { id: data.tenantId } },
           deliveryProducts: isDelivery.getDeliveryProducts()?.length
             ? {
                 create: isDelivery.getDeliveryProducts().map((p) => ({
                   productId: p.getProductId(),
                   quantity: p.getQuantity(),
+                  // tenant: { connect: { id: p.TenantId } },
                 })),
               }
             : undefined,
@@ -80,7 +81,7 @@ export class DeliveryRepository implements IDeliveryRepository {
               },
             },
           },
-          stockMovements: true, // ✅ Ajout des mouvements de stock
+          stockMovements: true,
         },
       });
       // create stock movement
@@ -103,11 +104,13 @@ export class DeliveryRepository implements IDeliveryRepository {
       throw new BadGatewayException(`delevery:repositored: ${error.message}`);
     }
   }
-
   // RECUPERER TOUS LES LIVRAISONS
-  async findAllDelivery(): Promise<(Delivery & { totalPrice: number })[]> {
+  async findAllDelivery(
+    tenantId: string,
+  ): Promise<(Delivery & { totalPrice: number })[]> {
     try {
       const delivery = await this.prisma.delivery.findMany({
+        where: { tenantId },
         include: {
           deliveryPerson: {
             select: {
@@ -383,7 +386,6 @@ export class DeliveryRepository implements IDeliveryRepository {
       throw new BadRequestException(`error repo: ${error.message}`);
     }
   }
-
   async annulateDelivery(deliveryId: string): Promise<Delivery> {
     try {
       const delivery = await this.prisma.delivery.findUnique({
@@ -423,13 +425,13 @@ export class DeliveryRepository implements IDeliveryRepository {
           status: 'CANCELED',
         },
       });
-
       return this.mapper.toDomain(canceledDelevery);
     } catch (error) {
       throw new BadRequestException(`error on  repository: ${error.message}`);
     }
   }
   async paginate(
+    tenantId: string,
     limit: number,
     page: number,
     search: string,
@@ -443,7 +445,7 @@ export class DeliveryRepository implements IDeliveryRepository {
   }> {
     try {
       const skip = (page - 1) * limit; // Construction du filtre dynamique
-      const where: any = {};
+      const where: any = { tenantId };
       if (search) {
         where.id = {
           contains: search,
@@ -529,10 +531,10 @@ export class DeliveryRepository implements IDeliveryRepository {
       });
     }
   }
-  async process(): Promise<Delivery[]> {
+  async process(tenantId: string): Promise<Delivery[]> {
     try {
       const deliveries = await this.prisma.delivery.findMany({
-        where: { status: DeliveryStatus.IN_PROGRESS },
+        where: { tenantId, status: DeliveryStatus.IN_PROGRESS },
       });
       const allDeliveries = deliveries.map((delivery) =>
         this.mapper.toDomain(delivery),
@@ -544,7 +546,7 @@ export class DeliveryRepository implements IDeliveryRepository {
       );
     }
   }
-  async toDay(): Promise<Delivery[]> {
+  async toDay(tenantId: string): Promise<Delivery[]> {
     try {
       const start = new Date();
       start.setHours(0, 0, 0, 0); // début de la journée
@@ -553,6 +555,7 @@ export class DeliveryRepository implements IDeliveryRepository {
       end.setHours(23, 59, 59, 999); // fin de la journée
       const deliveries = await this.prisma.delivery.findMany({
         where: {
+          tenantId,
           createdAt: {
             gte: start,
             lte: end,
@@ -580,6 +583,7 @@ export class DeliveryRepository implements IDeliveryRepository {
   }
 
   async findByDateRange(
+    tenantId: string,
     startDate: string,
     endDate: string,
   ): Promise<Delivery[]> {
@@ -600,6 +604,7 @@ export class DeliveryRepository implements IDeliveryRepository {
       end.setHours(23, 59, 59, 999);
       const deliveries = await this.prisma.delivery.findMany({
         where: {
+          tenantId,
           createdAt: {
             gte: start, // Supérieur ou égal à la date de début
             lte: end, // Inférieur ou égal à la date de fin

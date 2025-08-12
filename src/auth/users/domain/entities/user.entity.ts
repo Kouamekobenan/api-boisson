@@ -10,13 +10,16 @@ export class User {
     private role: UserRole,
     private createdAt: Date,
     private updatedAt: Date,
+    private tenantId: string | null,
   ) {}
 
   // setter
   getId(): string {
     return this.id;
   }
-
+  get TenantId(): string | null {
+    return this.tenantId;
+  }
   getEmail(): string {
     return this.email;
   }

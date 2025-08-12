@@ -12,19 +12,19 @@ export class DeliveryMapper {
       dataDelivery.deliveryPersonId ?? this.stringUndefined,
       dataDelivery.status,
       dataDelivery.createdAt,
+      dataDelivery.tenantId,
       dataDelivery.deliveryPerson,
       dataDelivery.deliveryProducts,
     );
   }
   //
-
   toApplication(dto: DeliveryDto): Delivery {
-    // console.log("Mapping des produits :", dto.deliveryProducts);
     return new Delivery(
       crypto.randomUUID(),
       dto.deliveryPersonId || this.stringUndefined,
       dto.status,
       new Date(),
+      dto.tenantId,
       undefined,
       dto.deliveryProducts?.map(
         (p) =>
@@ -36,6 +36,7 @@ export class DeliveryMapper {
             new Date(),
             p.deliveredQuantity,
             p.returnedQuantity,
+            p.tenantId,
             // Date actuelle
           ),
       ) ?? [],

@@ -19,11 +19,12 @@ export class PaginateCreditPaymentUseCase {
     private readonly creditPaymentRepository: ICreditPaymentRepository,
   ) {}
   async execute(
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<CreditPayment>> {
     try {
-      return await this.creditPaymentRepository.paginate(limit, page);
+      return await this.creditPaymentRepository.paginate(tenantId, limit, page);
     } catch (error) {
       this.logger.error('Failled to retrieve creditPayment', error.message);
       throw new BadRequestException(`Failled to retrieve creditPayment `, {

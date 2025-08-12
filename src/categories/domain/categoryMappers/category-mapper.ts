@@ -9,6 +9,7 @@ export class CategoryProductMapper {
     return new CategoryProduct(
       prismaModel.id,
       prismaModel.name,
+      prismaModel.tenantId,
       prismaModel.createdAt,
       prismaModel.updatedAt,
     );
@@ -18,6 +19,7 @@ export class CategoryProductMapper {
   ): Prisma.CategoryProductCreateInput {
     return {
       name: createDto.name,
+      tenant: { connect: { id: createDto.tenantId } },
     };
   }
   toUpdate(updateDto: CategoryProductDto): Prisma.CategoryProductUpdateInput {

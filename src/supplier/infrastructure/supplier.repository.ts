@@ -31,25 +31,21 @@ export class SupplierRepository implements ISupplierRepository {
     }
   }
   // FIND SUPPLIER BY ID
-  async findSupplierById(supplierId: string): Promise<SupplierEntity> {
+  async findSupplierById(supplierId: string): Promise<SupplierEntity | null> {
     try {
-      const isSupplierExist = await this.prisma.supplier.findUnique({
+      const supplier = await this.prisma.supplier.findUnique({
         where: { id: supplierId },
       });
-      if (!isSupplierExist) {
-        throw new BadRequestException(
-          "cet fournisseur n'exist pas dans la base",
-        );
-      }
-      return this.mapper.toReceive(isSupplierExist);
+     
+      return supplier ? this.mapper.toReceive(supplier) :null;
     } catch (error) {
       throw new BadRequestException(`error repository: ${error.message}`);
     }
   }
   // FIND ALL SUPPLIER
-  async findAll(): Promise<SupplierEntity[]> {
+  async findAll(tenantId:string): Promise<SupplierEntity[]> {
     try {
-      const suppliers = await this.prisma.supplier.findMany();
+      const suppliers = await this.prisma.supplier.findMany({where:{tenantId}});
       const allSyuppliers = suppliers.map((supplier) =>
         this.mapper.toReceive(supplier),
       );

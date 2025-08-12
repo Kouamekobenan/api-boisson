@@ -8,9 +8,9 @@ export class DeliveryProgressUseCase {
     @Inject('IDeliveryRepository')
     private readonly deliveryRepository: IDeliveryRepository,
   ) {}
-  async execute(): Promise<Delivery[]> {
+  async execute(tenantId: string): Promise<Delivery[]> {
     try {
-      const delivery = await this.deliveryRepository.process();
+      const delivery = await this.deliveryRepository.process(tenantId);
       return delivery;
     } catch (error) {
       throw new BadRequestException('Failed to retrieve delivery in progress', {

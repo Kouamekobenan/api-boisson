@@ -3,6 +3,7 @@ import {
   IsArray,
   IsDecimal,
   IsEnum,
+  IsNotEmpty,
   IsUUID,
   ValidateNested,
 } from 'class-validator';
@@ -39,4 +40,13 @@ export class OrderDto {
   @ValidateNested({ each: true })
   @Type(() => OrderItemDto)
   orderItems: OrderItemDto[];
+  
+    @ApiProperty({
+      description: 'Identifiant du tenant',
+      example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    tenantId: string;
+  
 }

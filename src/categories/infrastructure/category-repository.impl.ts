@@ -52,6 +52,7 @@ export class CatetoryProductRepository implements ICategoryProductRepository {
     }
   }
   async filter(
+    tenantId: string,
     filter: CategoryProductDto,
     limit: number,
     page: number,
@@ -63,7 +64,7 @@ export class CatetoryProductRepository implements ICategoryProductRepository {
     page: number;
   }> {
     try {
-      const query: any = {};
+      const query: any = { tenantId };
       const skip = (page - 1) * limit;
       if (filter.name !== undefined) {
         query.name = { contains: filter.name, mode: 'insensitive' };
@@ -97,6 +98,7 @@ export class CatetoryProductRepository implements ICategoryProductRepository {
     }
   }
   async pagination(
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<{
@@ -110,11 +112,12 @@ export class CatetoryProductRepository implements ICategoryProductRepository {
       const skip = (page - 1) * limit;
       const [categories, total] = await Promise.all([
         this.prisma.categoryProduct.findMany({
+          where: { tenantId },
           skip: skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.categoryProduct.count(),
+        this.prisma.categoryProduct.count({ where: { tenantId } }),
       ]);
       const categoryMap = categories.map((category) =>
         this.mapper.toEntity(category),

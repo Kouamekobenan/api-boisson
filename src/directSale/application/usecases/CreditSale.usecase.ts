@@ -16,9 +16,13 @@ export class FindCreditSaleUseCase {
     @Inject(DirectSaleRepositoryName)
     private readonly directeSaleRepository: IDirectSaleRepository,
   ) {}
-  async execute(limit: number, page: number) {
+  async execute(tenantId: string, limit: number, page: number) {
     try {
-      return await this.directeSaleRepository.findCreditSale(limit, page);
+      return await this.directeSaleRepository.findCreditSale(
+        tenantId,
+        limit,
+        page,
+      );
     } catch (error) {
       this.logger.error('Failled to retrieve sale with credit', error.stack);
       console.log('error', error);

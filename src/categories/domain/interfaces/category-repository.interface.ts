@@ -5,6 +5,7 @@ export interface ICategoryProductRepository {
   create(createDto: CategoryProductDto): Promise<CategoryProduct>;
   findById(id: string): Promise<CategoryProduct | null>;
   filter(
+    tenantId:string,
     filter: CategoryProductDto,
     limit: number,
     page: number,
@@ -16,6 +17,7 @@ export interface ICategoryProductRepository {
     page: number;
   }>;
   pagination(
+    tenantId:string,
     limit: number,
     page: number,
   ): Promise<{

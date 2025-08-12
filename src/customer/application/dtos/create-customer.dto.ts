@@ -1,4 +1,5 @@
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
+import { IsNotEmpty, IsUUID } from 'class-validator';
 
 export class CreateCustomerDto {
   @ApiProperty({
@@ -24,4 +25,12 @@ export class CreateCustomerDto {
     example: 'Abidjan, Cocody Riviera',
   })
   address?: string;
+  
+    @ApiProperty({
+      description: 'Identifiant du tenant',
+      example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+    })
+    @IsUUID()
+    @IsNotEmpty()
+    tenantId: string;
 }

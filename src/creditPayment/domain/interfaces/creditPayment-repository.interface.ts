@@ -10,6 +10,7 @@ export interface ICreditPaymentRepository {
   findById(id: string): Promise<CreditPayment>;
   create(dto: CreateCreditPaymentDto): Promise<CreditPayment>;
   paginate(
+    tenantId:string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<CreditPayment>>;

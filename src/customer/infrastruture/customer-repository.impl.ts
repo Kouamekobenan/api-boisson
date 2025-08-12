@@ -80,6 +80,7 @@ export class CustomerRepository implements ICustomerRepository {
     }
   }
   async paginate(
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<Customer>> {
@@ -87,6 +88,7 @@ export class CustomerRepository implements ICustomerRepository {
       const skip = (page - 1) * limit;
       const [cutomers, total] = await Promise.all([
         this.prisma.customer.findMany({
+          where: { tenantId },
           include: {
             sales: true,
           },
@@ -114,15 +116,16 @@ export class CustomerRepository implements ICustomerRepository {
       });
     }
   }
-  async findAll(): Promise<Customer[]> {
+  async findAll(tenantId: string): Promise<Customer[]> {
     try {
       const customers = await this.prisma.customer.findMany({
+        where: { tenantId },
         orderBy: { createdAt: 'desc' },
       });
-      
-      return customers.map((customer) => this.mapper.toEntity(customer))
+
+      return customers.map((customer) => this.mapper.toEntity(customer));
     } catch (error) {
-      throw new BadRequestException('Failled to retrieve customers')
+      throw new BadRequestException('Failled to retrieve customers');
     }
   }
 }

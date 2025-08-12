@@ -17,6 +17,7 @@ export class ProductMapper {
       product.stock,
       product.supplierId,
       product.categoryProductId,
+      product.tenantId,
       product.createdAt,
       product.updatedAt,
     );

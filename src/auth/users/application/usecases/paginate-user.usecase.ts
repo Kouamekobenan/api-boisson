@@ -11,13 +11,20 @@ export class PaginateUserUseCase {
   ) {}
 
   async execute(
+    tenantId: string,
     page: number,
     limit: number,
     search?: FilterUserDto,
     role?: UserRole | 'ALL',
   ) {
     try {
-      return await this.userRepository.paginate(page, limit, search, role);
+      return await this.userRepository.paginate(
+        tenantId,
+        page,
+        limit,
+        search,
+        role,
+      );
     } catch (error) {
       throw new BadRequestException('Failed to paginate user', {
         cause: error,

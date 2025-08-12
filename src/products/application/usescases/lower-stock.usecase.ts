@@ -8,9 +8,9 @@ export class LowerStockUseCase {
     @Inject('IProductRepository')
     private readonly productRepository: IProductRepository,
   ) {}
-  async execute(page:number, limit:number) {
+  async execute(tenantId: string, page: number, limit: number) {
     try {
-      return await this.productRepository.lower(page,limit);
+      return await this.productRepository.lower(tenantId, page, limit);
     } catch (error) {
       throw new BadRequestException('Failed to stock lower ', {
         cause: error,

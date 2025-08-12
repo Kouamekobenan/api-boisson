@@ -3,12 +3,12 @@ import { ProductDto } from '../dtos/product-dto.dto';
 import { FilterProductDto } from '../dtos/filtrage-product.dto';
 import { UpdateProductDto } from '../dtos/update-dto.product-dto';
 export interface IProductRepository {
-  createProduct(data: ProductDto): Promise<ProductEntity>;
+  createProduct(tenantId: string, data: ProductDto): Promise<ProductEntity>;
   provisioning(
     productId: string,
     products: { supplierId?: string; stock?: number },
   ): Promise<ProductEntity>;
-  findAllProduct(): Promise<ProductEntity[]>;
+  findAllProduct(tenantId: string): Promise<ProductEntity[]>;
   updateProcut(
     productId: string,
     productData: UpdateProductDto,
@@ -16,6 +16,7 @@ export interface IProductRepository {
   findById(productId: string): Promise<ProductEntity | null>;
   deleteProduct(productId: string): Promise<void>;
   filter(
+    tenantId:string,
     input: FilterProductDto,
     page?: number,
     limit?: number,
@@ -27,6 +28,7 @@ export interface IProductRepository {
     limit: number;
   }>;
   paginate(
+    tenantId:string,
     limit: number,
     page: number,
   ): Promise<{
@@ -37,6 +39,7 @@ export interface IProductRepository {
     limit: number;
   }>;
   lower(
+    tenantId:string,
     page: number,
     limit: number,
   ): Promise<{

@@ -1,5 +1,12 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsNotEmpty,
+  IsOptional,
+  IsString,
+  IsUUID,
+} from 'class-validator';
 import { UserRole } from '../../domain/enums/role.enum';
 
 export class UserDto {
@@ -42,4 +49,11 @@ export class UserDto {
   })
   @IsEnum(UserRole)
   role: UserRole;
+  @ApiProperty({
+    description: 'Identifiant du tenant',
+    example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  tenantId: string;
 }

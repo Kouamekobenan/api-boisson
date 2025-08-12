@@ -7,6 +7,7 @@ import {
   IsArray,
   Min,
   ValidateNested,
+  IsNotEmpty,
 } from 'class-validator';
 import { ApiProperty } from '@nestjs/swagger';
 import { DirectSaleItemDto } from '../directSaleItem/create-directSale.dto';
@@ -54,16 +55,13 @@ export class CreateDirectSaleDto {
   @IsNumber()
   @Min(0)
   amountPaid: number;
-
-  // @ApiProperty({
-  //   description: 'Montant restant dû',
-  //   example: 2500,
-  //   minimum: 0,
-  // })
-  // @IsNumber()
-  // @Min(0)
-  // dueAmount: number;
-
+  @ApiProperty({
+    description: 'Identifiant du tenant',
+    example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  tenantId: string;
   @ApiProperty({
     description: 'Liste des articles vendus',
     type: [DirectSaleItemDto],

@@ -15,6 +15,7 @@ export class PaginateDeliveryUseCase {
     private readonly deleveryRepository: IDeliveryRepository,
   ) {}
   async execute(
+    tenantId: string,
     limit: number,
     page: number,
     search: string,
@@ -22,6 +23,7 @@ export class PaginateDeliveryUseCase {
   ) {
     try {
       return await this.deleveryRepository.paginate(
+        tenantId,
         limit,
         page,
         search,

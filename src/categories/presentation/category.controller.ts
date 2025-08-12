@@ -57,7 +57,7 @@ export class CategoryProductController {
   ): Promise<CategoryProduct> {
     return await this.createCategoryProductUseCase.execute(createDto);
   }
-  @Get('filter')
+  @Get('filter/:tenantId')
   @ApiOperation({ summary: 'Filtrer les catégories avec pagination' })
   @ApiQuery({
     name: 'name',
@@ -84,16 +84,18 @@ export class CategoryProductController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async filter(
+    @Param('tenantId') tenantId: string,
     @Query() dto: CategoryProductDto,
     @Query() paginate: PaginateDto,
   ) {
     return this.filterCategoryProductUseCase.execute(
+      tenantId,
       dto,
       paginate.limit,
       paginate.page,
     );
   }
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Lister les catégories avec pagination' })
   @ApiQuery({
@@ -113,8 +115,12 @@ export class CategoryProductController {
     description: 'Liste paginée des catégories',
     type: [CategoryProduct],
   })
-  async pagination(@Query() paginate: PaginateDto) {
+  async pagination(
+    @Param('tenantId') tenantId: string,
+    @Query() paginate: PaginateDto,
+  ) {
     return await this.paginateCategoryProductUseCase.execute(
+      tenantId,
       paginate.limit,
       paginate.page,
     );

@@ -16,9 +16,9 @@ export class PaginateDirecteSaleUseCase {
     @Inject(DirectSaleRepositoryName)
     private readonly directeRepository: IDirectSaleRepository,
   ) {}
-  async execute(limit: number, page: number) {
+  async execute(tenantId: string, limit: number, page: number) {
     try {
-      return await this.directeRepository.paginate(limit, page);
+      return await this.directeRepository.paginate(tenantId, limit, page);
     } catch (error) {
       this.logger.error(
         `Failled to retrieve directeSale: page:${page}, limit:${limit} , error:${error.stack}`,

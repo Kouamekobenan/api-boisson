@@ -7,6 +7,7 @@ export class Customer {
     private phone: string | null,
     private email: string | null,
     private address: string | null,
+    private tenantId:string | null,
     private sales: DirectSale,
     private createdAt: Date,
     private updatedAt: Date,
@@ -14,6 +15,9 @@ export class Customer {
   //   GETTERS
   get Id(): string {
     return this.id;
+  }
+  get TenantId():string | null{
+    return this.tenantId
   }
   get Name(): string {
     return this.name;

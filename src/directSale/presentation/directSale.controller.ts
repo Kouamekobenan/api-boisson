@@ -64,7 +64,7 @@ export class DirectSaleController {
     return response;
   }
 
-  @Get('credit')
+  @Get('credit/:tenantId')
   @ApiOperation({ summary: 'Pagination des ventes directes à crédit' })
   @ApiQuery({
     name: 'page',
@@ -82,9 +82,16 @@ export class DirectSaleController {
     status: 200,
     description: 'Liste paginée des ventes directes à crédit.',
   })
-  async findCreditSale(@Query() query: PaginateDirecteSaleDto) {
+  async findCreditSale(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateDirecteSaleDto,
+  ) {
     const { data, total, page, limit } =
-      await this.findCreditSaleUseCase.execute(query.limit, query.page);
+      await this.findCreditSaleUseCase.execute(
+        tenantId,
+        query.limit,
+        query.page,
+      );
     const response = ResponseHelper.paginated(
       data,
       total,
@@ -95,7 +102,7 @@ export class DirectSaleController {
     return response;
   }
 
-  @Get('paginate')
+  @Get('paginate/tenant/:tenantId')
   @ApiOperation({ summary: 'Pagination des ventes directes' })
   @ApiQuery({
     name: 'page',
@@ -114,11 +121,18 @@ export class DirectSaleController {
     description: 'Liste paginée des ventes directes.',
   })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async paginate(@Query() query: PaginateDirecteSaleDto) {
+  async paginate(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateDirecteSaleDto,
+  ) {
     const limitNumber = Number(query.limit);
     const pageNumber = Number(query.page);
     const { data, total, page, limit } =
-      await this.paginateDirecteSaleUseCase.execute(limitNumber, pageNumber);
+      await this.paginateDirecteSaleUseCase.execute(
+        tenantId,
+        limitNumber,
+        pageNumber,
+      );
     const response = ResponseHelper.paginated(
       data,
       total,
@@ -128,7 +142,23 @@ export class DirectSaleController {
     );
     return response;
   }
-
+  @Get('tenant/:tenantId')
+  @ApiOperation({ summary: 'Récupérer toutes les ventes directes' })
+  @ApiOkResponse({
+    description: 'Liste des ventes directes récupérées avec succès',
+    type: DirectSale, // ou crée un DTO `SuccessDirectSaleResponseDto` pour Swagger
+  })
+  async findAll(
+    @Param('tenantId') tenantId: string,
+  ): Promise<SuccessResponse<DirectSale[]>> {
+    try {
+      const directeSales =
+        await this.findAllDirecteSaleUseCase.execute(tenantId);
+      return ResponseHelper.success(directeSales, 'Directe sales data:');
+    } catch (error) {
+      throw new Error('Échec lors de la récupération des ventes directes');
+    }
+  }
   @Get(':id')
   @ApiOperation({ summary: 'Récupérer une vente directe par ID' })
   @ApiParam({
@@ -153,20 +183,7 @@ export class DirectSaleController {
     const response = ResponseHelper.success(directSale, 'Vente directe data:');
     return response;
   }
-  @Get()
-  @ApiOperation({ summary: 'Récupérer toutes les ventes directes' })
-  @ApiOkResponse({
-    description: 'Liste des ventes directes récupérées avec succès',
-    type: DirectSale, // ou crée un DTO `SuccessDirectSaleResponseDto` pour Swagger
-  })
-  async findAll(): Promise<SuccessResponse<DirectSale[]>> {
-    try {
-      const directeSales = await this.findAllDirecteSaleUseCase.execute();
-      return ResponseHelper.success(directeSales, 'Directe sales data:');
-    } catch (error) {
-      throw new Error('Échec lors de la récupération des ventes directes');
-    }
-  }
+
   @Delete(':id')
   @ApiOperation({ summary: 'Supprimer une vente directe par ID' })
   @ApiParam({

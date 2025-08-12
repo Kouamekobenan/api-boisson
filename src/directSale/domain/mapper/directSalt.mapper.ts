@@ -34,6 +34,7 @@ export class DirectSaleMapper {
       prismaModel.isCredit,
       Number(prismaModel.amountPaid),
       Number(prismaModel.dueAmount),
+      prismaModel.tenantId,
       saleItems,
       prismaModel.createdAt,
       prismaModel.updatedAt,
@@ -49,7 +50,7 @@ export class DirectSaleMapper {
       totalPrice: createDto.totalPrice,
       isCredit: createDto.isCredit,
       amountPaid: createDto.amountPaid,
-      // dueAmount: createDto.dueAmount,
+      tenant: { connect: { id: createDto.tenantId } },
       saleItems: {
         create: createDto.saleItems.map((item: DirectSaleItemDto) => ({
           product: { connect: { id: item.productId } },

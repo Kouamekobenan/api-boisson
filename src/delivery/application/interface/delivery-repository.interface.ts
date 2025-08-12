@@ -5,7 +5,7 @@ import { DeliveryStatus } from 'src/delivery/domain/enums/deliveryStatus.enums';
 
 export interface IDeliveryRepository {
   created(deliveryPersonId: string, data: DeliveryDto): Promise<Delivery>;
-  findAllDelivery(): Promise<Delivery[]>;
+  findAllDelivery(tenantId:string): Promise<Delivery[]>;
   updateDelivery(
     deliveryId: string,
     data: UpdateDeliveryDto,
@@ -25,6 +25,7 @@ export interface IDeliveryRepository {
   ): Promise<Delivery>;
   annulateDelivery(deliveryId: string): Promise<Delivery>;
   paginate(
+    tenantId: string,
     limit: number,
     page: number,
     search: string,
@@ -37,7 +38,11 @@ export interface IDeliveryRepository {
     limit: number;
   }>;
   history(deliveryPersonId: string): Promise<Delivery[]>;
-  process(): Promise<Delivery[]>;
-  toDay(): Promise<Delivery[]>;
-  findByDateRange(startDate: string, endDate: string): Promise<Delivery[]>;
+  process(tenantId:string): Promise<Delivery[]>;
+  toDay(tenantId: string): Promise<Delivery[]>;
+  findByDateRange(
+    tenantId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Delivery[]>;
 }

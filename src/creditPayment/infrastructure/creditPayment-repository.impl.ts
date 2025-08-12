@@ -40,10 +40,9 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
             },
           },
         });
-
         // 3. Si la dette est soldée, isCredit => false
         //  -Number(dto.amount);
-        if (Number(updatedSale.dueAmount)<= 0) {
+        if (Number(updatedSale.dueAmount) <= 0) {
           await tx.directSale.update({
             where: { id: dto.directSaleId },
             data: {
@@ -92,6 +91,7 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
     }
   }
   async paginate(
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<CreditPayment>> {
@@ -99,6 +99,7 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
       const skip = (page - 1) * limit;
       const [creaditPayments, total] = await Promise.all([
         this.prisma.creditPayment.findMany({
+          where: { tenantId },
           include: {
             directSale: {
               select: { amountPaid: true, dueAmount: true, totalPrice: true },
@@ -108,7 +109,7 @@ export class CreditPaymentRepository implements ICreditPaymentRepository {
           take: limit,
           orderBy: { paidAt: 'desc' },
         }),
-        this.prisma.creditPayment.count(),
+        this.prisma.creditPayment.count({ where: { tenantId } }),
       ]);
       const creditPaymentall = creaditPayments.map((creditPayment) =>
         this.mapper.toEntity(creditPayment),

@@ -8,9 +8,9 @@ export class FindAllDeliveryUseCase{
     constructor(@Inject('IDeliveryPersonRepository')
 private readonly deliveryPersonRepository:IDeliveryPersonRepository){}
 
-async execute():Promise<DeliveryPerson[]>{
+async execute(tenantId:string):Promise<DeliveryPerson[]>{
     try {
-        const deliveryPerson = await this.deliveryPersonRepository.getAllDeliveryPerson()
+        const deliveryPerson = await this.deliveryPersonRepository.getAllDeliveryPerson(tenantId)
         return deliveryPerson
     } catch (error) {
         throw new BadGatewayException('use-case:', error.message)

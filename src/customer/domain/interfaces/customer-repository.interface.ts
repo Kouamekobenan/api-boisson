@@ -7,10 +7,11 @@ export const CustomerRepositoryName='ICustomerRepository'
 export interface ICustomerRepository {
   create(dto: CreateCustomerDto): Promise<Customer>;
   findById(id: string): Promise<Customer>;
-  findAll(): Promise<Customer[]>;
+  findAll(tenantId:string): Promise<Customer[]>;
   update(id: string, updateDto: UpdateCustomerDto): Promise<Customer>;
   deleteCustomer(id: string): Promise<void>;
   paginate(
+    tenantId:string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<Customer>>;

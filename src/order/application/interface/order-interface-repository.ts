@@ -7,6 +7,7 @@ export interface IOrderRepository {
   deleteOrder(orderId: string): Promise<void>;
   findOrderById(orderId: string): Promise<OrderEntity>;
   paginate(
+    tenantId:string,
     page: number,
     limit: number,
     search:string,

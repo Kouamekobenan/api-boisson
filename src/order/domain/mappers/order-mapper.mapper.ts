@@ -1,3 +1,4 @@
+import { Prisma } from '@prisma/client';
 import { OrderEntity } from '../entities/order.entity';
 import { OrderStatus } from '../enums/orderStatus.enum';
 import { OrderDto } from 'src/order/application/dtos/create-order-dto.dto';
@@ -19,6 +20,7 @@ export class OrderMapper {
         // Ajout du nom du produit depuis la relation
         productName: item.product?.name,
       })) || [],
+      dataPrisma.tenantId,
       // Ajout du nom de l'utilisateur depuis la relation
       dataPrisma.user?.name,
       dataPrisma.user?.email,
@@ -29,6 +31,7 @@ export class OrderMapper {
     return {
       userId: dataDto.userId,
       status: dataDto.status,
+      tenantId:dataDto.tenantId,
       totalPrice: dataDto.totalPrice,
       orderItems: dataDto.orderItems.map((p: OrderItemDto) => ({
         productId: p.productId,

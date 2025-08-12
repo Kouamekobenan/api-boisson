@@ -52,9 +52,9 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async getAllUsers(): Promise<User[]> {
+  async getAllUsers(tenantId:string): Promise<User[]> {
     try {
-      const allUsers = await this.prisma.user.findMany();
+      const allUsers = await this.prisma.user.findMany({where:{tenantId}});
       return allUsers.map((user) => this.mapper.toAplication(user));
     } catch (error) {
       throw new BadGatewayException("une erreur s'est produite:", error);
@@ -85,6 +85,7 @@ export class UserRepository implements IUserRepository {
     }
   }
   async paginate(
+    tenantId:string,
     page: number,
     limit: number,
     search: FilterUserDto,
@@ -98,8 +99,7 @@ export class UserRepository implements IUserRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
-      const where: any = {};
-
+      const where: any = {tenantId};
       const orFilters: any[] = [];
 
       if (search?.name?.trim()) {
@@ -153,6 +153,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async filter(
+    tenantId:string,
     filter: FilterUserDto,
     limit: number,
     page: number,
@@ -164,7 +165,7 @@ export class UserRepository implements IUserRepository {
     page: number;
   }> {
     try {
-      const query: any = {};
+      const query: any = {tenantId};
       if (filter.email !== undefined) {
         query.email = filter.email;
       }

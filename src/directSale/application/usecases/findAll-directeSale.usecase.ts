@@ -9,9 +9,9 @@ export class FindAllDirecteSaleUseCase{
         @Inject(DirectSaleRepositoryName)
         private readonly directeSaleRepository:IDirectSaleRepository
     ){}
-    async execute():Promise<DirectSale[]>{
+    async execute(tenantId:string):Promise<DirectSale[]>{
         try {
-            const directeSales = await this.directeSaleRepository.findAll()
+            const directeSales = await this.directeSaleRepository.findAll(tenantId)
             return directeSales
         } catch (error) {
          this.logger.error(`Failled to retrieve directe sale`, error.stack)   

@@ -9,6 +9,7 @@ export class ProductEntity {
     private stock: number,
     private supplierId: string,
     private categoryProductId: string | null,
+    private tenantId:string |null,
     private createdAt: Date,
     private updatedAt: Date,
   ) {}
@@ -53,6 +54,9 @@ export class ProductEntity {
   }
   getCategoryProductId(): string | null {
     return this.categoryProductId;
+  }
+  getTenantId():string | null{
+    return this.tenantId
   }
 
   // 🔹 SETTERS avec validations

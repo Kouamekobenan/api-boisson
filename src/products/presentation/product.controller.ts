@@ -37,7 +37,6 @@ import { PaginateProductUseCase } from '../application/usescases/paginate-produc
 import { PaginateDto } from '../application/dtos/paginate-product.dto';
 import { LowerStockUseCase } from '../application/usescases/lower-stock.usecase';
 import { GetByIdProductUseCase } from '../application/usescases/get-product-byId.usecase';
-import { query } from 'express';
 import { ProvisionningDto } from '../application/dtos/provisionning-product.dto';
 import { ResponseHelper } from 'src/common/helpers/response.helper';
 import { SuccessResponse } from 'src/common/types/response-controller.type';
@@ -56,13 +55,18 @@ export class ProductController {
     private readonly lowerStockUseCase: LowerStockUseCase,
     private readonly getByIdProductUseCase: GetByIdProductUseCase,
   ) {}
-
-  @Post()
+  @Post('tenant/:tenantId')
   @ApiOperation({
     summary: 'Créer un produit',
-    description: 'Crée un nouveau produit pour un fournisseur donné.',
+    description: 'Crée un nouveau produit pour un tenant donné.',
   })
   @ApiBody({ type: ProductDto, description: 'Données du produit à créer' })
+  @ApiParam({
+    name: 'tenantId',
+    type: String,
+    description: 'Identifiant du tenant',
+    example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+  })
   @ApiResponse({
     status: 201,
     description: 'Produit créé avec succès',
@@ -70,22 +74,56 @@ export class ProductController {
   })
   @ApiResponse({ status: 400, description: 'Requête invalide' })
   @ApiResponse({ status: 500, description: 'Erreur serveur' })
-  async createProduct(@Body() dataProduct: ProductDto): Promise<SuccessResponse<ProductEntity>> {
-    const product = await this.createProductUseCase.execute(dataProduct);
-    const response= ResponseHelper.success(product)
-    return response
+  async createProduct(
+    @Param('tenantId') tenantId: string,
+    @Body() dataProduct: ProductDto,
+  ): Promise<SuccessResponse<ProductEntity>> {
+    const product = await this.createProductUseCase.execute(
+      tenantId,
+      dataProduct,
+    );
+    return ResponseHelper.success(product);
   }
-  @Get()
+
+  @Put(':id')
+  @ApiOperation({ summary: 'Mettre à jour un produit' })
+  @ApiParam({
+    name: 'id',
+    description: "L'ID du produit à mettre à jour",
+    type: String,
+  })
+  @ApiBody({
+    type: UpdateProductDto,
+    description: 'Les nouvelles données du produit',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Produit mis à jour avec succès',
+    type: ProductEntity,
+  })
+  @ApiResponse({ status: 404, description: 'Produit non trouvé' })
+  @UsePipes(new ValidationPipe({ transform: true }))
+  async updateProduct(
+    @Param('id') productId: string,
+    @Body() productData: UpdateProductDto,
+  ): Promise<ProductEntity> {
+    return await this.updateProductUseCase.execute(productId, productData);
+  }
+
+  @Get('/tenant/:tenantId')
   @ApiOperation({ summary: 'Récupérer tous les produits' })
   @ApiResponse({
     status: 200,
     description: 'Liste de tous les produits',
     type: [ProductEntity],
   })
-  async findAllProduct(): Promise<ProductEntity[]> {
-    return await this.findAllProductUseCase.execute();
+  async findAllProduct(
+    @Param('tenantId') tenantId: string,
+  ): Promise<ProductEntity[]> {
+    return await this.findAllProductUseCase.execute(tenantId);
   }
-  @Get('paginate')
+
+  @Get('paginate/:tenantId')
   @ApiOperation({
     summary: 'Paginer les produits',
     description: 'Récupère une liste paginée de produits',
@@ -110,13 +148,21 @@ export class ProductController {
     description: "Nombre d'éléments par page (par défaut 10)",
   })
   @UsePipes(new ValidationPipe({ transform: true }))
-  async paginate(@Query() query: PaginateDto) {
+  async paginate(
+    @Query() query: PaginateDto,
+    @Param('tenantId') tenantId: string,
+  ) {
     const { data, total, page, limit } =
-      await this.paginateProductUseCase.execute(query.limit, query.page);
+      await this.paginateProductUseCase.execute(
+        tenantId,
+        query.limit,
+        query.page,
+      );
     const response = ResponseHelper.paginated(data, total, page, limit);
     return response;
   }
-  @Get('filter')
+
+  @Get('filter/:tenantId')
   @ApiOperation({
     summary: 'Filtrer les produits',
     description:
@@ -163,33 +209,13 @@ export class ProductController {
     type: Number,
     example: 10,
   })
-  async filter(@Query() filters: FilterProductDto) {
-    return await this.fiterProductUseCase.execute(filters);
+  async filter(
+    @Param('tenantId') tenantId: string,
+    @Query() filters: FilterProductDto,
+  ) {
+    return await this.fiterProductUseCase.execute(tenantId, filters);
   }
 
-  @Put(':id')
-  @ApiOperation({ summary: 'Mettre à jour un produit' })
-  @ApiParam({
-    name: 'id',
-    description: "L'ID du produit à mettre à jour",
-    type: String,
-  })
-  @ApiBody({
-    type: UpdateProductDto,
-    description: 'Les nouvelles données du produit',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Produit mis à jour avec succès',
-    type: ProductEntity,
-  })
-  @ApiResponse({ status: 404, description: 'Produit non trouvé' })
-  async updateProduct(
-    @Param('id') productId: string,
-    @Body() productData: UpdateProductDto,
-  ): Promise<ProductEntity> {
-    return await this.updateProductUseCase.execute(productId, productData);
-  }
   @Delete(':id')
   @ApiOperation({
     summary: 'Supprimer un produit',
@@ -210,36 +236,36 @@ export class ProductController {
     await this.deleteProductUseCase.execute(productId);
     return true;
   }
-
-  @Patch(':id')
+  @Patch('/provisioning/:productId')
   @UsePipes(new ValidationPipe({ transform: true }))
-  @ApiOperation({ summary: 'Acheter un produit et mettre à jour le stock' })
+  @ApiOperation({ summary: 'Approvisionner un produit (ajout de stock)' })
   @ApiResponse({
     status: 200,
-    description: 'Achat réussi',
+    description: 'Stock mis à jour avec succès',
     type: ProductEntity,
   })
   @ApiResponse({
     status: 400,
     description: 'Erreur de validation ou stock insuffisant',
   })
-  @ApiQuery({
-    name: 'quantity',
-    required: true,
-    example: 10,
-    description: 'Quantité du produit à acheter',
+  @ApiBody({
+    type: ProvisionningDto,
+    description: 'Données d’approvisionnement du produit',
   })
-  async provisionning(
-    @Param('id') productId: string,
+  async provisioning(
+    @Param('productId') productId: string,
     @Body() products: ProvisionningDto,
   ): Promise<ProductEntity> {
     try {
       return await this.byProductUseCase.execute(productId, products);
     } catch (error) {
-      throw new BadRequestException(`Erreur d'achat : ${error.message}`);
+      throw new BadRequestException(
+        `Erreur d'approvisionnement : ${error.message}`,
+      );
     }
   }
-  @Get('lower')
+
+  @Get('lower/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Lister les produits avec un stock critique' })
   @ApiQuery({
@@ -267,8 +293,15 @@ export class ProductController {
     status: 400,
     description: 'Erreur lors de la récupération des produits',
   })
-  async lower(@Query() query: PaginateDto) {
-    return await this.lowerStockUseCase.execute(query.page, query.limit);
+  async lower(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateDto,
+  ) {
+    return await this.lowerStockUseCase.execute(
+      tenantId,
+      query.page,
+      query.limit,
+    );
   }
 
   @Get(':id')

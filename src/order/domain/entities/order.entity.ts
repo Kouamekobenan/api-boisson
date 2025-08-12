@@ -1,6 +1,5 @@
 import { OrderStatus } from '../enums/orderStatus.enum';
 import { orderItemEntity } from './orderItem.entity';
-
 export class OrderEntity {
   constructor(
     private readonly id: string,
@@ -10,6 +9,7 @@ export class OrderEntity {
     private createdAt: Date,
     private updatedAt: Date,
     private orderItems: orderItemEntity[] = [],
+    private tenantId:string | null,
     private userName?: string,
     private userMail?:string,
     private userPhone?:string,
@@ -18,7 +18,9 @@ export class OrderEntity {
   public getOrderItems(): orderItemEntity[] {
     return this.orderItems;
   }
-
+get TenantId():string | null{
+  return this.tenantId
+}
   calculeTotalPrice(): number {
     return this.orderItems.reduce((sum, item) => sum + item.getTotalPrice(), 0);
   }

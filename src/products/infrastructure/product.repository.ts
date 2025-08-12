@@ -12,7 +12,6 @@ import { ProductDto } from '../application/dtos/product-dto.dto';
 import { ProductEntity } from '../domain/entities/product.entity';
 import { FilterProductDto } from '../application/dtos/filtrage-product.dto';
 import { UpdateProductDto } from '../application/dtos/update-dto.product-dto';
-import { ProvisionningDto } from '../application/dtos/provisionning-product.dto';
 
 @Injectable()
 export class ProductRepository implements IProductRepository {
@@ -21,11 +20,19 @@ export class ProductRepository implements IProductRepository {
     private readonly prisma: PrismaService,
     private readonly mapper: ProductMapper,
   ) {}
-  async createProduct(data: ProductDto): Promise<ProductEntity> {
+  async createProduct(
+    tenantId: string,
+    data: ProductDto,
+  ): Promise<ProductEntity> {
     try {
       const dataTosend = this.mapper.toPersistence(data);
       const newProduct = await this.prisma.product.create({
-        data: dataTosend,
+        data: {
+          ...dataTosend,
+          tenant: {
+            connect: { id: tenantId },
+          },
+        },
       });
       return this.mapper.toEntity(newProduct);
     } catch (error) {
@@ -34,9 +41,11 @@ export class ProductRepository implements IProductRepository {
     }
   }
   // FIND ALL PRODUCT
-  async findAllProduct(): Promise<ProductEntity[]> {
+  async findAllProduct(tenantId: string): Promise<ProductEntity[]> {
     try {
-      const products = await this.prisma.product.findMany();
+      const products = await this.prisma.product.findMany({
+        where: { tenantId },
+      });
       const productToreceive = products.map((product) =>
         this.mapper.toEntity(product),
       );
@@ -49,7 +58,7 @@ export class ProductRepository implements IProductRepository {
   }
   async updateProcut(
     productId: string,
-    productData: ProvisionningDto,
+    productData: UpdateProductDto,
   ): Promise<ProductEntity> {
     try {
       const productToUpdate = this.mapper.toProvisioning(productData);
@@ -97,15 +106,18 @@ export class ProductRepository implements IProductRepository {
     products: { supplierId: string; stock: number },
   ): Promise<ProductEntity> {
     try {
-      // Recupere le stock actuel en base
-      const existingProduct = await this.prisma.product.findUnique({
+      // Vérifie que le produit existe ET qu'il appartient au tenant
+      const existingProduct = await this.prisma.product.findFirst({
         where: { id: productId },
       });
 
       if (!existingProduct) {
-        throw new NotFoundException('Produit non trouvé');
+        throw new NotFoundException(
+          'Produit non trouvé ou non lié à ce tenant',
+        );
       }
-      //  Faire l'approvisionnement du produit
+
+      // Approvisionnement
       const updateStock = await this.prisma.product.update({
         where: { id: productId },
         data: {
@@ -113,7 +125,8 @@ export class ProductRepository implements IProductRepository {
           supplierId: products.supplierId,
         },
       });
-      //   Modifie le mouvement du stock
+
+      // Mouvement de stock
       await this.prisma.stockMovement.create({
         data: {
           productId: existingProduct.id,
@@ -124,10 +137,14 @@ export class ProductRepository implements IProductRepository {
 
       return this.mapper.toEntity(updateStock);
     } catch (error) {
-      throw new BadRequestException(`L\'approvisionnement n\'a pas puis passé`);
+      throw new BadRequestException(
+        `L'approvisionnement n'a pas pu être effectué`,
+      );
     }
   }
+
   async filter(
+    tenantId: string,
     filter: FilterProductDto,
     page: number = 1,
     limit: number = 10,
@@ -139,7 +156,7 @@ export class ProductRepository implements IProductRepository {
     limit: number;
   }> {
     try {
-      const query: any = {};
+      const query: any = { tenantId };
       if (filter.name) {
         query.name = { contains: filter.name, mode: 'insensitive' };
       }
@@ -184,6 +201,7 @@ export class ProductRepository implements IProductRepository {
     }
   }
   async paginate(
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<{
@@ -197,11 +215,12 @@ export class ProductRepository implements IProductRepository {
       const skip = (page - 1) * limit;
       const [products, total] = await Promise.all([
         this.prisma.product.findMany({
+          where: { tenantId },
           skip: skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.product.count(),
+        this.prisma.product.count({ where: { tenantId } }),
       ]);
       const prod = products.map((d) => this.mapper.toEntity(d));
       return {
@@ -220,6 +239,7 @@ export class ProductRepository implements IProductRepository {
     }
   }
   async lower(
+    tenantId: string,
     page: number,
     limit: number,
   ): Promise<{
@@ -233,28 +253,27 @@ export class ProductRepository implements IProductRepository {
       const skip = (page - 1) * limit;
       const stockThreshold = 10;
 
+      const whereCondition = {
+        tenantId, 
+        stock: {
+          lt: stockThreshold,
+        },
+      };
+
       const [products, total] = await Promise.all([
         this.prisma.product.findMany({
-          where: {
-            stock: {
-              lt: stockThreshold,
-            },
-          },
+          where: whereCondition,
           skip,
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
         this.prisma.product.count({
-          where: {
-            stock: {
-              lt: stockThreshold,
-            },
-          },
+          where: whereCondition,
         }),
       ]);
-      const data = products.map((p) => this.mapper.toEntity(p));
+
       return {
-        data,
+        data: products.map((p) => this.mapper.toEntity(p)),
         total,
         totalPage: Math.ceil(total / limit),
         page,

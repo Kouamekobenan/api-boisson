@@ -9,9 +9,17 @@ export class FindByDateRangeDeliveryUseCase {
     @Inject('IDeliveryRepository')
     private readonly deliveryRepository: IDeliveryRepository,
   ) {}
-  async execute(startDate: string, endDate: string): Promise<Delivery[]> {
+  async execute(
+    tenantId: string,
+    startDate: string,
+    endDate: string,
+  ): Promise<Delivery[]> {
     try {
-      return await this.deliveryRepository.findByDateRange(startDate, endDate);
+      return await this.deliveryRepository.findByDateRange(
+        tenantId,
+        startDate,
+        endDate,
+      );
     } catch (error) {
       this.logger.error(
         `Failled to retrieve data to deliveries ${error.message}`,

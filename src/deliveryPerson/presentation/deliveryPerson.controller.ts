@@ -55,11 +55,11 @@ export class DeliveryPersonController {
     name: 'id',
     type: 'string',
     description: 'ID du livreur à mettre à jour',
-  }) 
+  })
   @ApiResponse({
     status: 200,
     description: 'Livreur mis à jour avec succès',
-    type: DeliveryPerson, 
+    type: DeliveryPerson,
   })
   @ApiResponse({
     status: 400,
@@ -79,13 +79,15 @@ export class DeliveryPersonController {
         deliveryPersonDto,
       );
     } catch (error) {
-      throw error; 
+      throw error;
     }
   }
-  @Get()
-  @ApiOperation({ summary: 'Récuperer tous les livreurs' }) 
-  async getAllDeliveryPerson(): Promise<DeliveryPerson[]> {
-    return await this.findAllDeliveryUseCase.execute();
+  @Get(':tenantId')
+  @ApiOperation({ summary: 'Récuperer tous les livreurs' })
+  async getAllDeliveryPerson(
+    @Param('tenantId') tenantId: string,
+  ): Promise<DeliveryPerson[]> {
+    return await this.findAllDeliveryUseCase.execute(tenantId);
   }
   @Delete(':id')
   @ApiOperation({ summary: 'Supprimer un livreur' })

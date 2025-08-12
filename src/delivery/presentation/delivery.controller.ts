@@ -87,7 +87,7 @@ export class DeliveryController {
     return await this.createDeliveryUseCase.execute(deliveryId, delivery);
   }
 
-  @Get('range/date')
+  @Get('range/date/:tenantId')
   @ApiOperation({ summary: 'Récupérer les livraisons entre deux dates' })
   @ApiQuery({
     name: 'startDate',
@@ -109,15 +109,17 @@ export class DeliveryController {
     type: [Delivery],
   })
   async findDateRange(
+    @Param('tenantId') tenantId: string,
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ): Promise<Delivery[]> {
     return await this.findByDateRangeDeliveryUseCase.execute(
+      tenantId,
       startDate,
       endDate,
     );
   }
-  @Get('/day')
+  @Get('/day/:tenantId')
   @ApiOperation({ summary: 'Récupérer les livraisons journalières' })
   @ApiResponse({
     status: 200,
@@ -125,10 +127,10 @@ export class DeliveryController {
     type: [Delivery],
   })
   @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
-  async toDay(): Promise<Delivery[]> {
-    return await this.deliveryDayUseCase.excute();
+  async toDay(@Param('tenantId') tenantId: string): Promise<Delivery[]> {
+    return await this.deliveryDayUseCase.excute(tenantId);
   }
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({ summary: 'Paginer les livraisons' })
   @ApiQuery({
@@ -189,18 +191,22 @@ export class DeliveryController {
       },
     },
   })
-  async paginate(@Query() query: PaginateDto) {
+  async paginate(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateDto,
+  ) {
     return await this.paginateDeliveryUseCase.execute(
+      tenantId,
       query.limit,
       query.page,
       query.search,
       query.status,
     );
   }
-  @Get('progress')
+  @Get('progress/:tenantId')
   @ApiOperation({ summary: 'Récuperer les livraisons en cours' })
-  async process(): Promise<Delivery[]> {
-    return await this.deliveryProgressUseCase.execute();
+  async process(@Param('tenantId') tenantId: string): Promise<Delivery[]> {
+    return await this.deliveryProgressUseCase.execute(tenantId);
   }
   @Get(':deliveryPersonId')
   @ApiOperation({
@@ -223,8 +229,7 @@ export class DeliveryController {
   ): Promise<Delivery[]> {
     return await this.historyDeliveryPersonUseCase.execute(deliveryPersonId);
   }
-
-  @Get()
+  @Get('/tenant/:tenantId')
   @ApiOperation({ summary: 'Récupérer toutes les livraisons' })
   @ApiResponse({
     status: 200,
@@ -232,9 +237,11 @@ export class DeliveryController {
     type: [Delivery],
   })
   @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
-  async findAllDelivery(): Promise<Delivery[]> {
+  async findAllDelivery(
+    @Param('tenantId') tenantId: string,
+  ): Promise<Delivery[]> {
     try {
-      return await this.findAllDeliveryUseCase.execute();
+      return await this.findAllDeliveryUseCase.execute(tenantId);
     } catch (error) {
       throw new Error(error);
     }

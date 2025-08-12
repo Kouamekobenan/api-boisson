@@ -24,7 +24,10 @@ export class CreatePrductUseCase {
     @Inject(CategoryProductRepositoyName)
     private readonly categoryRepository: ICategoryProductRepository,
   ) {}
-  async execute(dataProduct: ProductDto): Promise<ProductEntity> {
+  async execute(
+    tenantId: string,
+    dataProduct: ProductDto,
+  ): Promise<ProductEntity> {
     try {
       if (!dataProduct.categoryProductId) {
         throw new BadRequestException('categoryProductId est requis');
@@ -45,7 +48,7 @@ export class CreatePrductUseCase {
           "Le prix d'achat doit être inferieur au prix de vente...! ",
         );
       }
-      return this.productRepository.createProduct(dataProduct);
+      return this.productRepository.createProduct(tenantId, dataProduct);
     } catch (error) {
       this.logger.error('Failed to create product ', error.stack);
       throw new BadGatewayException(`error use-case: ${error.message}`);

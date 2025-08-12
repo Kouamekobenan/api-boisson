@@ -6,10 +6,14 @@ export class orderItemEntity {
     private quantity: number,
     private unitPrice: number,
     private totalPrice: number,
+    private tenantId: string | null,
   ) {
     this.totalPrice = this.quantity * this.unitPrice;
   }
 
+  get TenantId(): string | null {
+    return this.tenantId;
+  }
   getProductId(): string {
     return this.productId;
   }

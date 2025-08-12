@@ -8,9 +8,9 @@ export class FindAllSupplierUseCase{
         @Inject('ISupplierRepository')
         private readonly supplierRepository:ISupplierRepository
     ){}
-    async execute():Promise<SupplierEntity[]>{
+    async execute(tenantId:string):Promise<SupplierEntity[]>{
         try {
-            return await this.supplierRepository.findAll()
+            return await this.supplierRepository.findAll(tenantId)
         } catch (error) {
             throw new BadRequestException(`error use-case:${error.message}`)
         }

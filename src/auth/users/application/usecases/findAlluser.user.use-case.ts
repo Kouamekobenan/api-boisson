@@ -9,9 +9,9 @@ export class FindAllUserUseCase {
     private readonly userRepository: IUserRepository,
   ) {}
 
-  async execute(): Promise<User[]> {
+  async execute(tenantId:string): Promise<User[]> {
     try {
-      return this.userRepository.getAllUsers();
+      return this.userRepository.getAllUsers(tenantId);
     } catch (error) {
       console.error('une Unable');
       throw new Error(error);

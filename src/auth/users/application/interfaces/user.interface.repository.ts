@@ -5,11 +5,12 @@ import { UserDto } from '../dtos/user.dto';
 export interface IUserRepository {
   createUser(dataUser: UserDto): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
-  getAllUsers(): Promise<User[]>;
+  getAllUsers(tenantId:string): Promise<User[]>;
   deleteUser(userId: string): Promise<void>;
   getUserById(userId: string): Promise<User>;
   count(): Promise<{ total: number }>;
   paginate(
+    tenantId:string,
     page: number,
     limit: number,
     search?: FilterUserDto,
@@ -22,6 +23,7 @@ export interface IUserRepository {
     limit: number;
   }>;
   filter(
+    tenantId:string,
     filter: FilterUserDto,
     limit: number,
     page: number,

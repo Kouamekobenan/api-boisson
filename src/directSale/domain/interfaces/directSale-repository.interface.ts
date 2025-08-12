@@ -7,10 +7,11 @@ export interface IDirectSaleRepository {
   create(createDto: CreateDirectSaleDto): Promise<DirectSale>;
   findById(id: string): Promise<DirectSale>;
   paginate(
+    tenantId:string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<DirectSale>>;
-  findAll(): Promise<DirectSale[]>;
+  findAll(tenantId:string): Promise<DirectSale[]>;
   delete(id: string): Promise<void>;
-  findCreditSale(limit:number, page: number): Promise<PaginatedResponseRepository<DirectSale>>;
+  findCreditSale(tenantId:string,limit:number, page: number): Promise<PaginatedResponseRepository<DirectSale>>;
 }

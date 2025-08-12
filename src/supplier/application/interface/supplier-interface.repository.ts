@@ -5,8 +5,8 @@ import { SuccessResponse } from "src/common/types/response-controller.type";
 
 export interface ISupplierRepository {
   create(data: SupplierDto): Promise<SuccessResponse<SupplierEntity>>;
-  findSupplierById(supplierId: string): Promise<SupplierEntity>;
-  findAll(): Promise<SupplierEntity[]>;
+  findSupplierById(supplierId: string): Promise<SupplierEntity | null>;
+  findAll(tenantId:string): Promise<SupplierEntity[]>;
   update(supplierId: string, data: UpdateSupplierDto): Promise<SupplierEntity>;
   deleted(supplierId: string): Promise<void>;
 }

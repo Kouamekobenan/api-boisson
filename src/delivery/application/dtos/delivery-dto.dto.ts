@@ -5,6 +5,7 @@ import {
   IsArray,
   ValidateNested,
   IsOptional,
+  IsNotEmpty,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { DeliveryStatus } from 'src/delivery/domain/enums/deliveryStatus.enums';
@@ -14,7 +15,7 @@ export class DeliveryProductDto {
     description: 'ID du DeliveryProduct (uniquement pour mise à jour)',
     required: false,
   })
-  id: string; // Facultatif pour la mise à jour
+  id: string;
 
   @IsUUID()
   @ApiProperty({ description: 'ID du produit' })
@@ -31,6 +32,13 @@ export class DeliveryProductDto {
 
   @ApiProperty({ description: 'Quantité de produit retournée', default: 0 })
   returnedQuantity: number = 0;
+  @ApiProperty({
+    description: 'Identifiant du tenant',
+    example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  tenantId: string;
 }
 
 export class DeliveryDto {
@@ -48,11 +56,17 @@ export class DeliveryDto {
     description: 'ID de la personne en charge de la livraison (facultatif)',
     required: false,
   })
-  deliveryPersonId?: string; // ✅ Ajout du champ pour correspondre à l'entité
-
+  deliveryPersonId?: string; 
+  @ApiProperty({
+    description: 'Identifiant du tenant',
+    example: 'd5c1a27e-9831-4f84-b8d8-8472a0e5f3e3',
+  })
+  @IsUUID()
+  @IsNotEmpty()
+  tenantId: string;
   @IsArray()
-  @ValidateNested({ each: true }) // ✅ Assure que chaque élément de `deliveryProducts` est bien un `DeliveryProductDto`
-  @Type(() => DeliveryProductDto) // ✅ Permet de transformer correctement les objets JSON reçus
+  @ValidateNested({ each: true }) 
+  @Type(() => DeliveryProductDto) 
   @ApiProperty({
     description: 'Liste des produits à livrer',
     type: [DeliveryProductDto],

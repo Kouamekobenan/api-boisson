@@ -9,24 +9,13 @@ import { UpdateCustomerDto } from 'src/customer/application/dtos/update-customer
 import { DirectSale } from 'src/directSale/domain/entities/directSale.entity';
 export class CustomerMapper {
   toEntity(prismaModel: any): Customer {
-  //  const directeSale = new DirectSale(
-  //    prismaModel.sales.id,
-  //    prismaModel.sales.sellerId,
-  //    prismaModel.sales.customerId,
-  //    Number(prismaModel.sales.totalPrice),
-  //    prismaModel.sales.isCredit,
-  //    Number(prismaModel.sales.amountPaid),
-  //    Number(prismaModel.sales.dueAmount),
-  //    [],
-  //    prismaModel.sales.createdAt,
-  //    prismaModel.sales.updatedAt,
-  //  );
     return new Customer(
       prismaModel.id,
       prismaModel.name,
       prismaModel.phone,
       prismaModel.email,
       prismaModel.address,
+      prismaModel.tenantId,
       prismaModel.sales,
       prismaModel.createdAt,
       prismaModel.updatedAt,
@@ -38,6 +27,7 @@ export class CustomerMapper {
       phone: dto.phone,
       email: dto.email,
       address: dto.address,
+      tenant:{connect:{id:dto.tenantId}}
     };
   }
   toUpdate(dto: UpdateCustomerDto): Prisma.CustomerUpdateInput {

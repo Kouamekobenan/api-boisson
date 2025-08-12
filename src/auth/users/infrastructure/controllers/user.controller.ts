@@ -47,15 +47,15 @@ export class UserController {
   ) {}
 
   @Public()
-  @Get()
+  @Get(':tenantId')
   @ApiOperation({ summary: 'Récupérer tous les utilisateurs' })
   @ApiOkResponse({
     description: 'Liste des utilisateurs récupérée avec succès',
     type: [User],
   })
   @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
-  async getAllUsers(): Promise<User[]> {
-    return await this.findAllUserUseCase.execute();
+  async getAllUsers(@Param('tenantId') tenantId: string): Promise<User[]> {
+    return await this.findAllUserUseCase.execute(tenantId);
   }
   @Public()
   @Delete(':id')
@@ -69,7 +69,7 @@ export class UserController {
       return false;
     }
   }
-  @Get('filter')
+  @Get('filter/:tenantId')
   @ApiOperation({ summary: 'Filtrer les utilisateurs' })
   @ApiQuery({
     name: 'email',
@@ -105,16 +105,18 @@ export class UserController {
   })
   @UsePipes(new ValidationPipe({ transform: true }))
   async filter(
+    @Param('tenantId') tenantId: string,
     @Query() filters: FilterUserDto,
     @Query() paginate: PaginateDto,
   ) {
     return await this.filterUserUseCase.execute(
+      tenantId,
       filters,
       paginate.limit,
       paginate.page,
     );
   }
-  @Get('paginate')
+  @Get('paginate/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({
     summary: 'Paginer les utilisateurs avec des recherches multi-critères',
@@ -175,9 +177,13 @@ export class UserController {
       },
     },
   })
-  async paginate(@Query() query: PaginateUserQueryDto) {
+  async paginate(
+    @Param('tenantId') tenantId: string,
+    @Query() query: PaginateUserQueryDto,
+  ) {
     const { page = '1', limit = '2', role, ...search } = query;
     return await this.paginateUserUseCase.execute(
+      tenantId,
       Number(page),
       Number(limit),
       search,

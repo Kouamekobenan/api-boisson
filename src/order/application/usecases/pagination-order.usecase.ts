@@ -13,9 +13,10 @@ export class PaginateOrderUseCase {
     @Inject('IOrderRepository')
     private readonly orderRepository: IOrderRepository,
   ) {}
-  async execute(page: number, limit: number, search:string, status:OrderStatus | 'ALL') {
+  async execute(tenantId:string, page: number, limit: number, search:string, status:OrderStatus | 'ALL') {
     try {
       const orders = await this.orderRepository.paginate(
+        tenantId,
         page,
         limit,
         search,
