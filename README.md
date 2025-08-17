@@ -23,14 +23,15 @@
 
 ## Description
 
-# 📦 MonDepot — Application de Gestion de Livraison
+# 📦 12Depot — Application de Gestion de Livraison
 
-**MonDepot** est une application web moderne conçue pour automatiser la gestion des produits, des fournisseurs, des livraisons et des commandes dans un dépôt. Elle facilite le suivi du stock en temps réel, la création de commandes, la facturation et la gestion des utilisateurs avec des rôles spécifiques.
+**12Depot** est une application web moderne conçue pour automatiser la gestion des produits, des fournisseurs, des livraisons et des commandes dans un dépôt. Elle facilite le suivi du stock en temps réel, la création de commandes, la facturation et la gestion des utilisateurs avec des rôles spécifiques.
 
 ---
 
 ## 🚀 Fonctionnalités Clés
 
+- 👩‍🦳 Gestion des **tenant** : permet de controller l'app sur tous les postes le logiciel est installé
 - 📦 Gestion des **produits** : seuil critique, prix d'achat, prix de vente, stock
 - 🏷️ Catégorisation des produits
 - 🤝 Gestion des **fournisseurs**
@@ -160,11 +161,11 @@ $ npm install -g mau
 $ mau deploy
 ```
 
-## ACCES DE MANAGER
+## ACCES DE SUPER_ADMIN
 
-PASSWORD: ``NONO12
+PASSWORD: ``super_admin12
 
-EMAIL: `` nono12@gmail.com
+EMAIL: `` kouamenelson47@gmail.com
 
 ## Faire migrer la BD sur Render
 

@@ -7,7 +7,13 @@ import {
   Patch,
   Post,
 } from '@nestjs/common';
-import { ApiTags, ApiOperation, ApiResponse, ApiBody, ApiParam } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBody,
+  ApiParam,
+} from '@nestjs/swagger';
 import { CreateTenantUseCase } from '../application/usecases/create-tenant.usecase';
 import { CreateTenantDto } from '../application/dtos/create-tenant.dto';
 import { Tenant } from '../domain/entities/tenant.entity';
@@ -18,6 +24,7 @@ import { FindByIdTenantUseCase } from '../application/usecases/find-by-Id.usecas
 import { DeleteTenantUseCase } from '../application/usecases/delete-tenant.usecase';
 import { UpdateTenantUseCase } from '../application/usecases/update-tenant.usecase';
 import { UpdateTenantDto } from '../application/dtos/update-tenant';
+import { FindAllTenantUseCase } from '../application/usecases/findAll-tenant.usecase';
 @Public()
 @Controller('tenant')
 @ApiTags('Tenant')
@@ -27,6 +34,7 @@ export class TenantController {
     private readonly findByIdTenantUseCase: FindByIdTenantUseCase,
     private readonly deleteTenantUseCase: DeleteTenantUseCase,
     private readonly updateTenantUseCase: UpdateTenantUseCase,
+    private readonly findAllTenantUseCase: FindAllTenantUseCase,
   ) {}
   @Post()
   @ApiOperation({ summary: 'Créer un nouveau tenant (organisation)' })
@@ -87,5 +95,11 @@ export class TenantController {
   ): Promise<SuccessResponse<Tenant>> {
     const tenant = await this.updateTenantUseCase.execute(id, body);
     return ResponseHelper.success(tenant);
+  }
+  @Get()
+  @ApiOperation({ summary: 'Récuperer tous les tenants' })
+  async findAll(): Promise<SuccessResponse<Tenant[]>> {
+    const res = await this.findAllTenantUseCase.execute();
+    return ResponseHelper.success(res);
   }
 }

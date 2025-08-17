@@ -33,7 +33,6 @@ import { AuthMeUseCase } from '../usecases/authme.usecase';
 import { CurrentUser } from 'src/core/decorators/user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/role.guard';
-import { CountUserConnectUseCase } from '../usecases/count-user.usecase';
 
 @ApiBearerAuth('access-token')
 @Controller('auth')
@@ -42,7 +41,6 @@ export class AuthController {
     private readonly registerUseCase: RegisterUserUseCase,
     private readonly loginUserUseCase: LoginUserUseCase,
     private readonly authMeUseCase: AuthMeUseCase,
-    private readonly countUserConnectUseCase: CountUserConnectUseCase,
   ) {}
 
   @Get('me')
@@ -51,24 +49,9 @@ export class AuthController {
   @ApiOperation({ summary: 'Get full current user' })
   @ApiResponse({ status: 200, description: 'User info from database' })
   async me(@Req() query: any) {
-    console.log('user id:', query.user);
     return await this.authMeUseCase.execute(query.user.userId);
   }
-  @Get('count')
-  @UseGuards(JwtAuthGuard)
-  @ApiOperation({ summary: 'Compter les utilisateurs connectés récemment' })
-  @ApiResponse({
-    status: 200,
-    description: 'Retourne le nombre total d’utilisateurs connectés',
-    schema: {
-      example: {
-        total: 5,
-      },
-    },
-  })
-  async count(): Promise<{ total: number }> {
-    return this.countUserConnectUseCase.execute();
-  }
+
   @Public()
   @Post('register')
   @ApiOperation({ summary: 'Créer un utilisateur' })

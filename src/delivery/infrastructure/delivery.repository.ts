@@ -444,12 +444,12 @@ export class DeliveryRepository implements IDeliveryRepository {
     limit: number;
   }> {
     try {
-      const skip = (page - 1) * limit; // Construction du filtre dynamique
+      const skip = (page - 1) * limit; 
       const where: any = { tenantId };
       if (search) {
         where.id = {
           contains: search,
-          mode: 'insensitive', // pour ne pas être sensible à la casse
+          mode: 'insensitive', 
         };
       }
       if (status && status !== 'ALL') {

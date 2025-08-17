@@ -61,4 +61,10 @@ export class TenantRepository implements ITenantRepository {
       throw new BadRequestException('Failled to update tenant', error);
     }
   }
+  async findAll(): Promise<Tenant[]> {
+    const tenants = await this.prisma.tenant.findMany({
+      orderBy: { createdAt: 'desc' },
+    });
+    return tenants.map((item) => this.mapper.toEntity(item));
+  }
 }

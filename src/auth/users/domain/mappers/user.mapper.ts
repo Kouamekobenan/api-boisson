@@ -13,7 +13,7 @@ export class UserMapper {
       tenant: { connect: { id: data.tenantId } },
     };
   }
-  toAplication(Userdata: UserPrisma): User {
+  toAplication(Userdata: UserPrisma & { tenant?: { name: string } | null }): User {
     return new User(
       Userdata.id,
       Userdata.email,
@@ -24,6 +24,7 @@ export class UserMapper {
       Userdata.createdAt,
       Userdata.updatedAt,
       Userdata.tenantId,
+      Userdata?.tenant?.name
     );
   }
   toUpdateUser(userData: UserDto): any {

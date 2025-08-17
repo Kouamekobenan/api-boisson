@@ -13,5 +13,5 @@ export interface IDirectSaleRepository {
   ): Promise<PaginatedResponseRepository<DirectSale>>;
   findAll(tenantId:string): Promise<DirectSale[]>;
   delete(id: string): Promise<void>;
-  findCreditSale(tenantId:string,limit:number, page: number): Promise<PaginatedResponseRepository<DirectSale>>;
+  findCreditSale(tenantId:string, limit:number, page: number): Promise<PaginatedResponseRepository<DirectSale>>;
 }

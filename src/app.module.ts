@@ -18,6 +18,7 @@ import { DirecteSaleModule } from './directSale/directSalt.module';
 import { CustomerModule } from './customer/customer.module';
 import { CreditPaymentModule } from './creditPayment/creditPayment.module';
 import { TenantModule } from './tenant/tenant.module';
+import { DashbordModule } from './dashbord/dashbord.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { TenantModule } from './tenant/tenant.module';
     CustomerModule,
     CreditPaymentModule,
     TenantModule,
+    DashbordModule,
   ],
   controllers: [AppController],
   providers: [

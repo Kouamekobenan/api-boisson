@@ -87,7 +87,7 @@ export class DirectSaleRepository implements IDirectSaleRepository {
     }
   }
   async paginate(
-    tenantId:string,
+    tenantId: string,
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<DirectSale>> {
@@ -95,9 +95,13 @@ export class DirectSaleRepository implements IDirectSaleRepository {
       const skip = (page - 1) * limit;
       const [directeSales, total] = await Promise.all([
         this.prisma.directSale.findMany({
-          where:{tenantId},
+          where: { tenantId },
           include: {
-            saleItems: true,
+            saleItems: {
+              include: {
+                product: true,
+              },
+            },
             customer: {
               select: { name: true },
             },
@@ -106,7 +110,7 @@ export class DirectSaleRepository implements IDirectSaleRepository {
           take: limit,
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.directSale.count(),
+        this.prisma.directSale.count({ where: { tenantId } }),
       ]);
       const directeSaleMap = directeSales.map((directSale) =>
         this.mapper.toEntity(directSale),
@@ -128,7 +132,7 @@ export class DirectSaleRepository implements IDirectSaleRepository {
       );
     }
   }
-  async findAll(tenantId:string): Promise<DirectSale[]> {
+  async findAll(tenantId: string): Promise<DirectSale[]> {
     const today = new Date();
     const start = new Date(today.setHours(0, 0, 0, 0));
     const end = new Date(today.setHours(23, 59, 59, 999));
@@ -173,7 +177,7 @@ export class DirectSaleRepository implements IDirectSaleRepository {
     }
   }
   async findCreditSale(
-    tenantId:string,
+    tenantId: string,
     limit: number = 1,
     page: number = 10,
   ): Promise<PaginatedResponseRepository<DirectSale>> {
@@ -181,13 +185,13 @@ export class DirectSaleRepository implements IDirectSaleRepository {
       const skip = (Number(page) - 1) * Number(limit);
       const [directeSales, total] = await Promise.all([
         this.prisma.directSale.findMany({
-          where: {tenantId, isCredit: true },
+          where: { tenantId, isCredit: true },
           include: { saleItems: true, customer: { select: { name: true } } },
           skip,
           take: Number(limit),
           orderBy: { createdAt: 'desc' },
         }),
-        this.prisma.directSale.count({ where: {tenantId, isCredit: true } }),
+        this.prisma.directSale.count({ where: { tenantId, isCredit: true } }),
       ]);
       const salesMap = directeSales.map((sale) => this.mapper.toEntity(sale));
       return {

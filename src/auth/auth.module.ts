@@ -12,7 +12,6 @@ import { RegisterUserUseCase } from './usecases/register.user.use-case';
 import { LoginUserUseCase } from './usecases/login.use-case';
 import { PassportModule } from '@nestjs/passport';
 import { AuthMeUseCase } from './usecases/authme.usecase';
-import { CountUserConnectUseCase } from './usecases/count-user.usecase';
 
 @Module({
   imports: [
@@ -36,9 +35,7 @@ import { CountUserConnectUseCase } from './usecases/count-user.usecase';
     RegisterUserUseCase,
     LoginUserUseCase,
     AuthMeUseCase,
-    CountUserConnectUseCase,
-    // injection dependance
-    PrismaService, // ✅ Ajout de PrismaService
+    PrismaService, 
 
     {
       provide: 'IUserRepository',
@@ -47,7 +44,6 @@ import { CountUserConnectUseCase } from './usecases/count-user.usecase';
 
     // mapper
     UserMapper,
-
     // guards
     JwtStrategy,
     JwtAuthGuard,

@@ -8,6 +8,7 @@ import { TenatRepositoryName } from './domain/interfaces/tenant-repository.inter
 import { FindByIdTenantUseCase } from './application/usecases/find-by-Id.usecase';
 import { DeleteTenantUseCase } from './application/usecases/delete-tenant.usecase';
 import { UpdateTenantUseCase } from './application/usecases/update-tenant.usecase';
+import { FindAllTenantUseCase } from './application/usecases/findAll-tenant.usecase';
 
 @Module({
   controllers: [TenantController],
@@ -22,6 +23,7 @@ import { UpdateTenantUseCase } from './application/usecases/update-tenant.usecas
     FindByIdTenantUseCase,
     DeleteTenantUseCase,
     UpdateTenantUseCase,
+    FindAllTenantUseCase,
   ],
   exports: [TenantModule],
 })

@@ -8,7 +8,6 @@ export interface IUserRepository {
   getAllUsers(tenantId:string): Promise<User[]>;
   deleteUser(userId: string): Promise<void>;
   getUserById(userId: string): Promise<User>;
-  count(): Promise<{ total: number }>;
   paginate(
     tenantId:string,
     page: number,

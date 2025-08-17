@@ -8,4 +8,5 @@ export interface ITenantRepository {
   delete(id: string): Promise<void>;
   findById(id: string): Promise<Tenant | null>;
   update(id: string, updateDto: UpdateTenantDto): Promise<Tenant>;
+  findAll(): Promise<Tenant[]>
 }

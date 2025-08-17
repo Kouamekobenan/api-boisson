@@ -190,10 +190,9 @@ export class UserController {
       role,
     );
   }
-
   @Public()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get(':id')
+  @Get('tenant/:id')
   @ApiOperation({
     summary: 'Récupérer le user par son ID',
   })

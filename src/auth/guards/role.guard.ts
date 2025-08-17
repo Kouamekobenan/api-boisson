@@ -3,12 +3,9 @@ import { Reflector } from '@nestjs/core';
 import { UserRole } from '../users/domain/enums/role.enum';
 import { IS_PUBLIC_KEY } from 'src/common/decorators/public.decorator';
 import { ROLES_KEY } from '../decorators/roles.decorators';
-
-
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
-
   canActivate(context: ExecutionContext): boolean {
     // Vérifier si la route est publique
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
@@ -19,7 +16,6 @@ export class RolesGuard implements CanActivate {
     if (isPublic) {
       return true; // Laisser passer sans authentification
     }
-
     // Récupérer les rôles requis pour l'accès à la route
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(ROLES_KEY, [
       context.getHandler(),

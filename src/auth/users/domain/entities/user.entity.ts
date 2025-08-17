@@ -11,6 +11,7 @@ export class User {
     private createdAt: Date,
     private updatedAt: Date,
     private tenantId: string | null,
+    private tenantName?:string
   ) {}
 
   // setter

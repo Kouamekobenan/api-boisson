@@ -52,9 +52,16 @@ export class UserRepository implements IUserRepository {
     }
   }
 
-  async getAllUsers(tenantId:string): Promise<User[]> {
+  async getAllUsers(tenantId: string): Promise<User[]> {
     try {
-      const allUsers = await this.prisma.user.findMany({where:{tenantId}});
+      const allUsers = await this.prisma.user.findMany({
+        where: { tenantId },
+        include: {
+          tenant: {
+            select: { name: true },
+          },
+        },
+      });
       return allUsers.map((user) => this.mapper.toAplication(user));
     } catch (error) {
       throw new BadGatewayException("une erreur s'est produite:", error);
@@ -75,6 +82,9 @@ export class UserRepository implements IUserRepository {
     try {
       const users = await this.prisma.user.findUnique({
         where: { id: userId },
+        include: {
+          tenant: { select: { name: true } },
+        },
       });
       if (!users) {
         throw new NotFoundException(`User :${userId} doesn't exist!`);
@@ -85,7 +95,7 @@ export class UserRepository implements IUserRepository {
     }
   }
   async paginate(
-    tenantId:string,
+    tenantId: string,
     page: number,
     limit: number,
     search: FilterUserDto,
@@ -99,7 +109,7 @@ export class UserRepository implements IUserRepository {
   }> {
     try {
       const skip = (page - 1) * limit;
-      const where: any = {tenantId};
+      const where: any = { tenantId };
       const orFilters: any[] = [];
 
       if (search?.name?.trim()) {
@@ -153,7 +163,7 @@ export class UserRepository implements IUserRepository {
   }
 
   async filter(
-    tenantId:string,
+    tenantId: string,
     filter: FilterUserDto,
     limit: number,
     page: number,
@@ -165,7 +175,7 @@ export class UserRepository implements IUserRepository {
     page: number;
   }> {
     try {
-      const query: any = {tenantId};
+      const query: any = { tenantId };
       if (filter.email !== undefined) {
         query.email = filter.email;
       }
@@ -199,22 +209,6 @@ export class UserRepository implements IUserRepository {
         cause: error,
         description: error.message,
       });
-    }
-  }
-  async count(): Promise<{ total: number }> {
-    try {
-      const since = new Date(Date.now() - 10 * 60 * 1000);
-      const numberUser = await this.prisma.user.count({
-        where: {
-          lastActiveAt: { gte: since },
-        },
-      });
-      return { total: numberUser };
-    } catch (error) {
-      throw new BadRequestException(
-        `Failled to retrieve number of user connect`,
-        error,
-      );
     }
   }
 }
