@@ -79,6 +79,7 @@ async function bootstrap() {
     await app.listen(port, host);
 
     const logger = new Logger('Bootstrap');
+    logger.log('JWT_SECRET:', process.env.JWT_SECRET);
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
     logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`📡 Listening on ${host}:${port}`);
