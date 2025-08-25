@@ -28,6 +28,8 @@ async function bootstrap() {
             'http://localhost:3000',
             'http://localhost:5173',
             'https://api-boisson-1.onrender.com',
+            'https://depot-website-mvx8cn5xl-kouame-noels-projects.vercel.app',
+            'https://api-boisson-production-bd26.up.railway.app',
           ],
         },
       },
@@ -44,7 +46,13 @@ async function bootstrap() {
 
   // ✅ Configuration CORS pour le frontend Electron/Next.js
   app.enableCors({
-    origin: ['http://localhost:3000', 'http://localhost:5173'],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://depot-website-mvx8cn5xl-kouame-noels-projects.vercel.app',
+      'https://api-boisson-production-bd26.up.railway.app',
+      /^https:\/\/.*\.vercel\.app$/,
+    ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true,
@@ -59,7 +67,9 @@ async function bootstrap() {
   // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
-    .setDescription('API de gestion comptable: Gerer les livreurs et les livraison')
+    .setDescription(
+      'API de gestion comptable: Gerer les livreurs et les livraison',
+    )
     .setVersion('1.0')
     .addBearerAuth(
       {
