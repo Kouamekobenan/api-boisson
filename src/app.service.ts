@@ -5,6 +5,6 @@ import { Public } from './common/decorators/public.decorator';
 export class AppService {
   @Public()
   getHello(): string {
-    return 'Hello World!';
+    return 'Hello World! Welcome to place API';
   }
 }
