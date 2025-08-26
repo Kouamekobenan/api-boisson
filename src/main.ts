@@ -17,7 +17,7 @@ async function bootstrap() {
   });
 
   // ✅ Helmet avec contentSecurityPolicy élargi
-  app.use(helmet());
+  // app.use(helmet());
   //  helmet({
   //     contentSecurityPolicy: {
   //       directives: {
@@ -48,7 +48,6 @@ async function bootstrap() {
       'http://localhost:3000',
       'http://localhost:5173',
       'https://depot-website-seven.vercel.app',
-      /^https:\/\/.*\.vercel\.app$/,
     ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
