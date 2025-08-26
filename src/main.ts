@@ -17,22 +17,21 @@ async function bootstrap() {
   });
 
   // ✅ Helmet avec contentSecurityPolicy élargi
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          connectSrc: [
-            "'self'",
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'https://depot-website-seven.vercel.app',
-            'https://api-boisson-production-bd26.up.railway.app', // 🔑 ton API Railway
-          ],
-        },
-      },
-    }),
-  );
+  app.use(helmet());
+  //  helmet({
+  //     contentSecurityPolicy: {
+  //       directives: {
+  //         defaultSrc: ["'self'"],
+  //         connectSrc: [
+  //           "'self'",
+  //           'http://localhost:3000',
+  //           'http://localhost:5173',
+  //           'https://depot-website-seven.vercel.app',
+  //           'https://api-boisson-production-bd26.up.railway.app', // 🔑 ton API Railway
+  //         ],
+  //       },
+  //     },
+  //   }),
 
   const configService = app.get(ConfigService);
 
