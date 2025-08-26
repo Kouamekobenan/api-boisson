@@ -16,49 +16,101 @@ async function bootstrap() {
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
 
-  // ✅ Helmet avec contentSecurityPolicy élargi
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          connectSrc: [
-            "'self'",
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'https://depot-website-seven.vercel.app',
-            'https://api-boisson-production-bd26.up.railway.app', // 🔑 ton API Railway
-          ],
-        },
-      },
-    }),
-  );
-
   const configService = app.get(ConfigService);
-
   const port = process.env.PORT
     ? parseInt(process.env.PORT, 10)
     : configService.get<number>('PORT', 3000);
-
   const host = configService.get<string>('HOST', '0.0.0.0');
 
-  // ✅ Configuration CORS
+  // ✅ Configuration CORS AVANT helmet et autres middlewares
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'https://depot-website-seven.vercel.app',
+  ];
+
+  // Ajouter FRONTEND_URL s'il existe
+  if (process.env.FRONTEND_URL) {
+    allowedOrigins.push(process.env.FRONTEND_URL);
+  }
+
   app.enableCors({
-    origin: [
-      process.env.FRONTEND_URL || '',
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'https://depot-website-seven.vercel.app',
-    ],
+    origin: (origin, callback) => {
+      // Permettre les requêtes sans origin (mobile apps, Postman, etc.)
+      if (!origin) return callback(null, true);
+
+      if (allowedOrigins.includes(origin)) {
+        return callback(null, true);
+      }
+
+      // En développement, être plus permissif
+      if (process.env.NODE_ENV !== 'production') {
+        return callback(null, true);
+      }
+
+      return callback(new Error('Non autorisé par CORS'), false);
+    },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+      'Access-Control-Request-Method',
+      'Access-Control-Request-Headers',
+    ],
+    exposedHeaders: ['Authorization'],
     credentials: true,
+    preflightContinue: false,
+    optionsSuccessStatus: 204,
   });
-  // ✅ Filtres globaux
+
+  // Middleware personnalisé pour gérer les requêtes OPTIONS
+  app.use((req, res, next) => {
+    if (req.method === 'OPTIONS') {
+      res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+      res.header(
+        'Access-Control-Allow-Methods',
+        'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+      );
+      res.header(
+        'Access-Control-Allow-Headers',
+        'Authorization,Content-Type,Accept,Origin,X-Requested-With',
+      );
+      res.header('Access-Control-Allow-Credentials', 'true');
+      res.header('Access-Control-Max-Age', '3600');
+      return res.status(204).send();
+    }
+    next();
+  });
+
+  // Helmet APRÈS la configuration CORS
+  app.use(
+    helmet({
+      contentSecurityPolicy:
+        process.env.NODE_ENV === 'production'
+          ? {
+              directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: [
+                  "'self'",
+                  'http://localhost:3000',
+                  'http://localhost:5173',
+                  'https://depot-website-seven.vercel.app',
+                  'https://api-boisson-production-bd26.up.railway.app',
+                ],
+              },
+            }
+          : false, // Désactiver CSP en développement
+      crossOriginEmbedderPolicy: false,
+    }),
+  );
+
+  // Filtres globaux
   app.useGlobalFilters(new HttpExceptionFilter());
-  // const reflector = app.get(Reflector);
-  // app.useGlobalGuards(new JwtAuthGuard(reflector, PrismaService), new RolesGuard(reflector));
-  // ✅ Swagger config
+
+  // Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
     .setDescription(
@@ -81,12 +133,17 @@ async function bootstrap() {
 
   try {
     await app.listen(port, host);
-
     const logger = new Logger('Bootstrap');
-    logger.log('JWT_SECRET:', process.env.JWT_SECRET);
+
+    // Ne pas logger le JWT_SECRET en production pour des raisons de sécurité
+    if (process.env.NODE_ENV !== 'production') {
+      logger.log('JWT_SECRET configuré:', !!process.env.JWT_SECRET);
+    }
+
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
     logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`📡 Listening on ${host}:${port}`);
+    logger.log(`🔒 CORS configuré pour: ${allowedOrigins.join(', ')}`);
   } catch (error) {
     const logger = new Logger('Bootstrap');
     logger.error('❌ Failed to start the server', error);
