@@ -7,7 +7,6 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
@@ -15,9 +14,6 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  // app.use(helmet());
-
-  // ✅ Helmet avec contentSecurityPolicy correct
   app.use(
     helmet({
       contentSecurityPolicy:
@@ -39,20 +35,14 @@ async function bootstrap() {
         : [
             'http://localhost:3000',
             'http://localhost:5173',
-            'https://restaurant-searchdish.onrender.com',
+            'https://depot-website-seven.vercel.app',
           ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true,
   });
-
   // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
-
-  // const reflector = app.get(Reflector);
-  // app.useGlobalGuards(new JwtAuthGuard(reflector, PrismaService), new RolesGuard(reflector));
-
-  // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
     .setDescription(
@@ -69,13 +59,11 @@ async function bootstrap() {
       'access-token',
     )
     .build();
-
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
 
   try {
     await app.listen(port, host);
-
     const logger = new Logger('Bootstrap');
     logger.log('JWT_SECRET:', process.env.JWT_SECRET);
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
@@ -87,5 +75,4 @@ async function bootstrap() {
     process.exit(1);
   }
 }
-
 bootstrap();
