@@ -28,7 +28,7 @@ async function bootstrap() {
             'http://localhost:3000',
             'http://localhost:5173',
             'https://api-boisson-1.onrender.com',
-            'https://depot-website-mvx8cn5xl-kouame-noels-projects.vercel.app',
+            'https://depot-website-seven.vercel.app/',
             'https://api-boisson-production-bd26.up.railway.app',
           ],
         },
@@ -49,7 +49,7 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
-      'https://depot-website-mvx8cn5xl-kouame-noels-projects.vercel.app',
+      'https://depot-website-seven.vercel.app',
       'https://api-boisson-production-bd26.up.railway.app',
       /^https:\/\/.*\.vercel\.app$/,
     ],
