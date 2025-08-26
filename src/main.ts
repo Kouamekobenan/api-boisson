@@ -16,26 +16,24 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  app.use(helmet());
+  // app.use(helmet());
 
   // ✅ Helmet avec contentSecurityPolicy correct
-  // app.use(
-  //   helmet({
-  //     contentSecurityPolicy: {
-  //       directives: {
-  //         defaultSrc: ["'self'"],
-  //         connectSrc: [
-  //           "'self'",
-  //           'http://localhost:3000',
-  //           'http://localhost:5173',
-  //           'https://api-boisson-1.onrender.com',
-  //           'https://depot-website-seven.vercel.app',
-  //           'https://api-boisson-production-bd26.up.railway.app',
-  //         ],
-  //       },
-  //     },
-  //   }),
-  // );
+  app.use(
+    helmet({
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          connectSrc: [
+            "'self'",
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'https://depot-website-seven.vercel.app',
+          ],
+        },
+      },
+    }),
+  );
 
   const configService = app.get(ConfigService);
 
