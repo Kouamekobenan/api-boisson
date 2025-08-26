@@ -7,7 +7,6 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
-import { PrismaService } from './prisma/prisma.service';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -16,9 +15,8 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  // app.use(helmet());
 
-  // ✅ Helmet avec contentSecurityPolicy correct
+  // ✅ Helmet avec contentSecurityPolicy élargi
   app.use(
     helmet({
       contentSecurityPolicy: {
@@ -29,6 +27,7 @@ async function bootstrap() {
             'http://localhost:3000',
             'http://localhost:5173',
             'https://depot-website-seven.vercel.app',
+            'https://api-boisson-production-bd26.up.railway.app', // 🔑 ton API Railway
           ],
         },
       },
@@ -43,25 +42,23 @@ async function bootstrap() {
 
   const host = configService.get<string>('HOST', '0.0.0.0');
 
-  // ✅ Configuration CORS pour le frontend Electron/Next.js
+  // ✅ Configuration CORS
   app.enableCors({
     origin: [
+      process.env.FRONTEND_URL || '',
       'http://localhost:3000',
       'http://localhost:5173',
       'https://depot-website-seven.vercel.app',
       /^https:\/\/.*\.vercel\.app$/,
     ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
     credentials: true,
   });
-
-  // ✅ Filtres et guards globaux
+  // ✅ Filtres globaux
   app.useGlobalFilters(new HttpExceptionFilter());
-
   // const reflector = app.get(Reflector);
   // app.useGlobalGuards(new JwtAuthGuard(reflector, PrismaService), new RolesGuard(reflector));
-
   // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
