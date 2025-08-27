@@ -7,6 +7,7 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
@@ -14,34 +15,48 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
+
+  // ✅ Helmet avec contentSecurityPolicy correct
   app.use(
     helmet({
-      contentSecurityPolicy:process.env.NODE_ENV === 'production' ? false : undefined,
+      contentSecurityPolicy: {
+        directives: {
+          defaultSrc: ["'self'"],
+          connectSrc: [
+            "'self'",
+            'http://localhost:3000',
+            'http://localhost:5173',
+            'https://depot-website-seven.vercel.app',
+          ],
+        },
+      },
     }),
   );
 
   const configService = app.get(ConfigService);
-  const port = process.env.PORT
-    ? parseInt(process.env.PORT, 10)
-    : configService.get<number>('PORT', 3000);
 
-  const host = configService.get<string>('HOST', '0.0.0.0');
+  // 🔧 Railway utilise la variable PORT dynamiquement
+  const port = process.env.PORT || 3000;
+
+  // 🔧 Forcez 0.0.0.0 pour Railway (ne pas utiliser de variable HOST custom)
+  const host = '0.0.0.0';
+
   // ✅ Configuration CORS pour le frontend Electron/Next.js
   app.enableCors({
-    origin:
-      process.env.NODE_ENV === 'production'
-        ? true
-        : [
-            'http://localhost:3000',
-            'http://localhost:5173',
-            // 'https://depot-website-seven.vercel.app',
-          ],
+    origin: [
+      'http://localhost:3000',
+      'http://localhost:5173',
+      'https://depot-website-seven.vercel.app',
+    ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
     credentials: true,
   });
+
   // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
+
+  // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
     .setDescription(
@@ -58,19 +73,31 @@ async function bootstrap() {
       'access-token',
     )
     .build();
+
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
+
   try {
     await app.listen(port, host);
+
     const logger = new Logger('Bootstrap');
-    logger.log('JWT_SECRET:', process.env.JWT_SECRET);
+
+    // 🔒 Ne pas logger les secrets en production
+    if (process.env.NODE_ENV !== 'production') {
+      logger.log('JWT_SECRET configured:', !!process.env.JWT_SECRET);
+    }
+
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
     logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`📡 Listening on ${host}:${port}`);
+
+    // 🔧 Log supplémentaire pour Railway
+    logger.log(`🔗 Railway URL should be accessible now`);
   } catch (error) {
     const logger = new Logger('Bootstrap');
     logger.error('❌ Failed to start the server', error);
     process.exit(1);
   }
 }
+
 bootstrap();
