@@ -16,8 +16,7 @@ async function bootstrap() {
   });
   app.use(
     helmet({
-      contentSecurityPolicy:
-        process.env.NODE_ENV === 'production' ? false : undefined,
+      contentSecurityPolicy:process.env.NODE_ENV === 'production' ? false : undefined,
     }),
   );
 
@@ -35,7 +34,7 @@ async function bootstrap() {
         : [
             'http://localhost:3000',
             'http://localhost:5173',
-            'https://depot-website-seven.vercel.app',
+            // 'https://depot-website-seven.vercel.app',
           ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Authorization', 'Content-Type'],
@@ -61,7 +60,6 @@ async function bootstrap() {
     .build();
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
   try {
     await app.listen(port, host);
     const logger = new Logger('Bootstrap');
