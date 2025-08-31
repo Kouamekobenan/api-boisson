@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import helmet from 'helmet';
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
@@ -12,40 +13,82 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-  // ✅ Helmet avec contentSecurityPolicy correct
+
   const configService = app.get(ConfigService);
   const port = process.env.PORT
     ? parseInt(process.env.PORT, 10)
     : configService.get<number>('PORT', 3000);
   const host = '0.0.0.0';
 
-  // ✅ Configuration CORS pour le frontend Electron/Next.js
+  // ✅ Configuration CORS améliorée
   app.enableCors({
-    origin: [
-      'http://localhost:3000',
-      'http://localhost:5173',
-      'http://127.0.0.1:3000',
-      'https://api-boisson-production-bd26.up.railway.app',
-      'https://depot-website-seven.vercel.app',
-    ],
+    origin: (origin, callback) => {
+      // Liste des domaines autorisés
+      const allowedOrigins = [
+        'http://localhost:3000',
+        'http://localhost:5173',
+        'http://127.0.0.1:3000',
+        'https://api-boisson-production-bd26.up.railway.app',
+        'https://depot-website-seven.vercel.app',
+        // Ajout pour tous les sous-domaines Vercel si nécessaire
+        /^https:\/\/.*\.vercel\.app$/,
+      ];
+
+      // Autoriser les requêtes sans origin (Postman, mobile apps, etc.)
+      if (!origin) return callback(null, true);
+
+      // Vérifier si l'origin est autorisé
+      const isAllowed = allowedOrigins.some((allowed) => {
+        if (typeof allowed === 'string') {
+          return allowed === origin;
+        }
+        return allowed.test(origin);
+      });
+
+      if (isAllowed) {
+        callback(null, true);
+      } else {
+        console.warn(`🚫 CORS blocked origin: ${origin}`);
+        callback(new Error('Not allowed by CORS'));
+      }
+    },
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
+    allowedHeaders: [
+      'Authorization',
+      'Content-Type',
+      'Accept',
+      'Origin',
+      'X-Requested-With',
+      'Access-Control-Request-Method',
+      'Access-Control-Request-Headers',
+    ],
+    exposedHeaders: ['Content-Length', 'X-Foo', 'X-Bar'],
     credentials: true,
-  });
-  app.use((req, res, next) => {
-    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-    res.header(
-      'Access-Control-Allow-Headers',
-      'Authorization, Content-Type, Accept',
-    );
-    res.header(
-      'Access-Control-Allow-Methods',
-      'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    );
-    res.header('Access-Control-Allow-Credentials', 'true');
-    next();
+    preflightContinue: false,
+    optionsSuccessStatus: 204, // Pour les anciens navigateurs
   });
 
+  // ⚠️ SUPPRIMER le middleware CORS manuel - il entre en conflit
+  // app.use((req, res, next) => { ... });
+
+  // ✅ Middleware de debug pour CORS (seulement en développement)
+  if (process.env.NODE_ENV !== 'production') {
+    app.use((req, res, next) => {
+      console.log(
+        `🔍 ${req.method} ${req.path} - Origin: ${req.headers.origin || 'none'}`,
+      );
+
+      // Log des headers CORS pour debug
+      if (req.method === 'OPTIONS') {
+        console.log('🔄 Preflight request detected');
+        console.log('Headers:', req.headers);
+      }
+
+      next();
+    });
+  }
+
+  // ✅ Helmet avec configuration adaptée
   app.use(
     helmet({
       contentSecurityPolicy:
@@ -55,12 +98,17 @@ async function bootstrap() {
                 defaultSrc: ["'self'"],
                 connectSrc: [
                   "'self'",
+                  'https://*.vercel.app',
                   'https://depot-website-seven.vercel.app',
                   'https://api-boisson-production-bd26.up.railway.app',
                 ],
+                scriptSrc: ["'self'", "'unsafe-inline'"],
+                styleSrc: ["'self'", "'unsafe-inline'"],
+                imgSrc: ["'self'", 'data:', 'https:'],
               },
             }
-          : false, // ⚠️ désactive CSP en dev
+          : false,
+      crossOriginEmbedderPolicy: false, // Important pour éviter les conflits CORS
     }),
   );
 
@@ -93,7 +141,6 @@ async function bootstrap() {
 
     const logger = new Logger('Bootstrap');
 
-    // 🔒 Ne pas logger les secrets en production
     if (process.env.NODE_ENV !== 'production') {
       logger.log('JWT_SECRET configured:', !!process.env.JWT_SECRET);
     }
@@ -101,9 +148,14 @@ async function bootstrap() {
     logger.log(`🚀 Application running on: ${await app.getUrl()}/api/docs`);
     logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`📡 Listening on ${host}:${port}`);
-
-    // 🔧 Log supplémentaire pour Railway
     logger.log(`🔗 Railway URL should be accessible now`);
+
+    // Log des domaines CORS autorisés
+    logger.log('✅ CORS enabled for:', [
+      'http://localhost:3000',
+      'https://depot-website-seven.vercel.app',
+      '*.vercel.app',
+    ]);
   } catch (error) {
     const logger = new Logger('Bootstrap');
     logger.error('❌ Failed to start the server', error);
