@@ -2,9 +2,9 @@ import { Injectable } from '@nestjs/common';
 import { Public } from './common/decorators/public.decorator';
 
 @Injectable()
+@Public()
 export class AppService {
-  @Public()
   getHello(): string {
-    return 'Hello World! Welcome to place API';
+    return 'API de gestion de stock 🎉';
   }
 }

@@ -1,13 +1,10 @@
-import { NestFactory, Reflector } from '@nestjs/core';
+import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
-import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
-import { RolesGuard } from './auth/guards/role.guard';
 import helmet from 'helmet';
-
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
     logger:
@@ -15,30 +12,11 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-
   // ✅ Helmet avec contentSecurityPolicy correct
-  app.use(
-    helmet({
-      contentSecurityPolicy: {
-        directives: {
-          defaultSrc: ["'self'"],
-          connectSrc: [
-            "'self'",
-            'http://localhost:3000',
-            'http://localhost:5173',
-            'https://depot-website-seven.vercel.app',
-          ],
-        },
-      },
-    }),
-  );
-
   const configService = app.get(ConfigService);
-
-  // 🔧 Railway utilise la variable PORT dynamiquement
-  const port = process.env.PORT || 3000;
-
-  // 🔧 Forcez 0.0.0.0 pour Railway (ne pas utiliser de variable HOST custom)
+  const port = process.env.PORT
+    ? parseInt(process.env.PORT, 10)
+    : configService.get<number>('PORT', 3000);
   const host = '0.0.0.0';
 
   // ✅ Configuration CORS pour le frontend Electron/Next.js
@@ -46,12 +24,45 @@ async function bootstrap() {
     origin: [
       'http://localhost:3000',
       'http://localhost:5173',
+      'http://127.0.0.1:3000',
+      'https://api-boisson-production-bd26.up.railway.app',
       'https://depot-website-seven.vercel.app',
     ],
     methods: ['GET', 'HEAD', 'PUT', 'PATCH', 'POST', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Authorization', 'Content-Type'],
+    allowedHeaders: ['Authorization', 'Content-Type', 'Accept'],
     credentials: true,
   });
+  app.use((req, res, next) => {
+    res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+    res.header(
+      'Access-Control-Allow-Headers',
+      'Authorization, Content-Type, Accept',
+    );
+    res.header(
+      'Access-Control-Allow-Methods',
+      'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
+    );
+    res.header('Access-Control-Allow-Credentials', 'true');
+    next();
+  });
+
+  app.use(
+    helmet({
+      contentSecurityPolicy:
+        process.env.NODE_ENV === 'production'
+          ? {
+              directives: {
+                defaultSrc: ["'self'"],
+                connectSrc: [
+                  "'self'",
+                  'https://depot-website-seven.vercel.app',
+                  'https://api-boisson-production-bd26.up.railway.app',
+                ],
+              },
+            }
+          : false, // ⚠️ désactive CSP en dev
+    }),
+  );
 
   // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
