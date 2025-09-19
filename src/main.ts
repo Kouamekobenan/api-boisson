@@ -30,8 +30,8 @@ async function bootstrap() {
         'http://127.0.0.1:3000',
         'https://api-boisson-production-bd26.up.railway.app',
         'https://depot-website-seven.vercel.app',
-        // Ajout pour tous les sous-domaines Vercel si nécessaire
         /^https:\/\/.*\.vercel\.app$/,
+        'https://depot-website-production.up.railway.app',
       ];
 
       // Autoriser les requêtes sans origin (Postman, mobile apps, etc.)
@@ -68,9 +68,6 @@ async function bootstrap() {
     optionsSuccessStatus: 204, // Pour les anciens navigateurs
   });
 
-  // ⚠️ SUPPRIMER le middleware CORS manuel - il entre en conflit
-  // app.use((req, res, next) => { ... });
-
   // ✅ Middleware de debug pour CORS (seulement en développement)
   if (process.env.NODE_ENV !== 'production') {
     app.use((req, res, next) => {
@@ -101,7 +98,7 @@ async function bootstrap() {
                   'https://*.vercel.app',
                   'https://depot-website-seven.vercel.app',
                   'https://api-boisson-production-bd26.up.railway.app',
-                  'https://depot-website-production.up.railway.app/',
+                  'https://depot-website-production.up.railway.app',
                 ],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'"],
@@ -155,7 +152,7 @@ async function bootstrap() {
     logger.log('✅ CORS enabled for:', [
       'http://localhost:3000',
       'https://depot-website-seven.vercel.app',
-      'https://depot-website-production.up.railway.app/',
+      'https://depot-website-production.up.railway.app',
       '*.vercel.app',
     ]);
   } catch (error) {
