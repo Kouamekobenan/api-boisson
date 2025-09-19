@@ -101,6 +101,7 @@ async function bootstrap() {
                   'https://*.vercel.app',
                   'https://depot-website-seven.vercel.app',
                   'https://api-boisson-production-bd26.up.railway.app',
+                  'https://depot-website-production.up.railway.app/',
                 ],
                 scriptSrc: ["'self'", "'unsafe-inline'"],
                 styleSrc: ["'self'", "'unsafe-inline'"],
@@ -154,6 +155,7 @@ async function bootstrap() {
     logger.log('✅ CORS enabled for:', [
       'http://localhost:3000',
       'https://depot-website-seven.vercel.app',
+      'https://depot-website-production.up.railway.app/',
       '*.vercel.app',
     ]);
   } catch (error) {
@@ -162,5 +164,4 @@ async function bootstrap() {
     process.exit(1);
   }
 }
-
 bootstrap();

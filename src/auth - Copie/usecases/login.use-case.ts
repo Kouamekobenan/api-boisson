@@ -19,6 +19,7 @@ export class LoginUserUseCase {
     if (!isUser) {
       throw new Error(`ce email:${email} est incorrect`);
     }
+
     const isComparePassword = await this.authservice.comparePassword(
       password,
       isUser.getPassword(),
@@ -32,6 +33,7 @@ export class LoginUserUseCase {
       email: isUser.getEmail(),
       role: isUser.getRole(),
     });
+
     return { user: isUser, token: generateToken };
   }
 }
