@@ -35,7 +35,6 @@ async function bootstrap() {
       ];
       // Autoriser les requêtes sans origin (Postman, mobile apps, etc.)
       if (!origin) return callback(null, true);
-
       // Vérifier si l'origin est autorisé
       const isAllowed = allowedOrigins.some((allowed) => {
         if (typeof allowed === 'string') {

@@ -29,6 +29,7 @@ import { UpdateTenantDto } from '../application/dtos/update-tenant';
 import { FindAllTenantUseCase } from '../application/usecases/findAll-tenant.usecase';
 import { CreateEspaceTenantUseCase } from '../application/usecases/createEspace-tenant.usecase';
 import { UserDto } from 'src/auth/users/application/dtos/user.dto';
+import { CreateTenantDtoSpace } from '../application/dtos/create-space.dto';
 @Public()
 @Controller('tenant')
 @ApiTags('Tenant')
@@ -112,14 +113,8 @@ export class TenantController {
     summary: 'Créer un espace Tenant',
     description: 'Crée un espace tenant ainsi qu’un utilisateur associé',
   })
-  @ApiQuery({
-    name: 'name',
-    description: 'Nom du tenant (espace) à créer',
-    type: String,
-    required: true,
-  })
   @ApiBody({
-    type: UserDto,
+    type: CreateTenantDtoSpace,
     description: 'Les informations de l’utilisateur qui sera créé',
   })
   @ApiResponse({
@@ -132,10 +127,12 @@ export class TenantController {
     description: 'Erreur lors de la création du tenant',
   })
   async createSpace(
-    @Body() user: UserDto,
-    @Query('name') name: string,
+    @Body() user: CreateTenantDtoSpace,
   ): Promise<SuccessResponse<Tenant>> {
-    const tenantResp = await this.createEspaceTenantUseCase.execute(user, name);
+    const tenantResp = await this.createEspaceTenantUseCase.execute(
+      user.user,
+      user.name,
+    );
     return ResponseHelper.success(tenantResp);
   }
 }
