@@ -6,6 +6,7 @@ import {
   Param,
   Patch,
   Post,
+  Query,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -13,6 +14,7 @@ import {
   ApiResponse,
   ApiBody,
   ApiParam,
+  ApiQuery,
 } from '@nestjs/swagger';
 import { CreateTenantUseCase } from '../application/usecases/create-tenant.usecase';
 import { CreateTenantDto } from '../application/dtos/create-tenant.dto';
@@ -25,6 +27,8 @@ import { DeleteTenantUseCase } from '../application/usecases/delete-tenant.useca
 import { UpdateTenantUseCase } from '../application/usecases/update-tenant.usecase';
 import { UpdateTenantDto } from '../application/dtos/update-tenant';
 import { FindAllTenantUseCase } from '../application/usecases/findAll-tenant.usecase';
+import { CreateEspaceTenantUseCase } from '../application/usecases/createEspace-tenant.usecase';
+import { UserDto } from 'src/auth/users/application/dtos/user.dto';
 @Public()
 @Controller('tenant')
 @ApiTags('Tenant')
@@ -35,6 +39,7 @@ export class TenantController {
     private readonly deleteTenantUseCase: DeleteTenantUseCase,
     private readonly updateTenantUseCase: UpdateTenantUseCase,
     private readonly findAllTenantUseCase: FindAllTenantUseCase,
+    private readonly createEspaceTenantUseCase: CreateEspaceTenantUseCase,
   ) {}
   @Post()
   @ApiOperation({ summary: 'Créer un nouveau tenant (organisation)' })
@@ -101,5 +106,36 @@ export class TenantController {
   async findAll(): Promise<SuccessResponse<Tenant[]>> {
     const res = await this.findAllTenantUseCase.execute();
     return ResponseHelper.success(res);
+  }
+  @Post('space')
+  @ApiOperation({
+    summary: 'Créer un espace Tenant',
+    description: 'Crée un espace tenant ainsi qu’un utilisateur associé',
+  })
+  @ApiQuery({
+    name: 'name',
+    description: 'Nom du tenant (espace) à créer',
+    type: String,
+    required: true,
+  })
+  @ApiBody({
+    type: UserDto,
+    description: 'Les informations de l’utilisateur qui sera créé',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Tenant créé avec succès',
+    type: Tenant, // tu peux aussi mettre SuccessResponse<Tenant> si tu l’as défini en DTO Swagger
+  })
+  @ApiResponse({
+    status: 400,
+    description: 'Erreur lors de la création du tenant',
+  })
+  async createSpace(
+    @Body() user: UserDto,
+    @Query('name') name: string,
+  ): Promise<SuccessResponse<Tenant>> {
+    const tenantResp = await this.createEspaceTenantUseCase.execute(user, name);
+    return ResponseHelper.success(tenantResp);
   }
 }

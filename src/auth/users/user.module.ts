@@ -31,6 +31,6 @@ import { FilterUserUseCase } from './application/usecases/filter-user.usecase';
     //   mappers
     UserMapper,
   ],
-  exports: [],
+  exports: [UserModule],
 })
 export class UserModule {}

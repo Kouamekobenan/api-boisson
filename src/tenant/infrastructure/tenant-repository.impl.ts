@@ -5,6 +5,8 @@ import { TenantMapper } from '../domain/mappers/tenant.mapper';
 import { CreateTenantDto } from '../application/dtos/create-tenant.dto';
 import { Tenant } from '../domain/entities/tenant.entity';
 import { UpdateTenantDto } from '../application/dtos/update-tenant';
+import { UserDto } from 'src/auth/users/application/dtos/user.dto';
+import { User } from 'src/auth/users/domain/entities/user.entity';
 @Injectable()
 export class TenantRepository implements ITenantRepository {
   private readonly logger = new Logger(TenantRepository.name);
@@ -66,5 +68,22 @@ export class TenantRepository implements ITenantRepository {
       orderBy: { createdAt: 'desc' },
     });
     return tenants.map((item) => this.mapper.toEntity(item));
+  }
+  async createEspace(user: UserDto, name: string): Promise<Tenant> {
+    return this.prisma.$transaction(async (tx) => {
+      const tenants = await tx.tenant.create({ data: { name } });
+      const users = await tx.user.create({
+        data: {
+          email: user.email,
+          password: user.password,
+          name: user.name,
+          phone: user.phone,
+          role: user.role,
+          tenant: { connect: { id: tenants.id } },
+        },
+      });
+      return this.mapper.toEntity(tenants);
+
+    }); 
   }
 }

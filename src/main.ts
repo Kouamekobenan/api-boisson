@@ -33,7 +33,6 @@ async function bootstrap() {
         /^https:\/\/.*\.vercel\.app$/,
         'https://depot-website-production.up.railway.app',
       ];
-
       // Autoriser les requêtes sans origin (Postman, mobile apps, etc.)
       if (!origin) return callback(null, true);
 
@@ -109,10 +108,8 @@ async function bootstrap() {
       crossOriginEmbedderPolicy: false, // Important pour éviter les conflits CORS
     }),
   );
-
   // ✅ Filtres et guards globaux
   app.useGlobalFilters(new HttpExceptionFilter());
-
   // ✅ Swagger config
   const config = new DocumentBuilder()
     .setTitle('Api MonDepot')
@@ -133,7 +130,6 @@ async function bootstrap() {
 
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup('api/docs', app, document);
-
   try {
     await app.listen(port, host);
 
@@ -147,7 +143,6 @@ async function bootstrap() {
     logger.log(`🌐 Environment: ${process.env.NODE_ENV || 'development'}`);
     logger.log(`📡 Listening on ${host}:${port}`);
     logger.log(`🔗 Railway URL should be accessible now`);
-
     // Log des domaines CORS autorisés
     logger.log('✅ CORS enabled for:', [
       'http://localhost:3000',
