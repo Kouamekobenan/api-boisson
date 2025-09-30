@@ -132,6 +132,6 @@ export class TenantController {
       user.user,
       user.name,
     );
-    return ResponseHelper.success(tenantResp);
+    return tenantResp;
   }
 }
