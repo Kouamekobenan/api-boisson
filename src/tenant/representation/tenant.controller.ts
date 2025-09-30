@@ -73,7 +73,6 @@ export class TenantController {
   async delete(@Param('id') id: string) {
     return await this.deleteTenantUseCase.execute(id);
   }
-
   @Patch(':id')
   @ApiOperation({ summary: 'Mettre à jour un tenant existant' })
   @ApiParam({
@@ -128,7 +127,7 @@ export class TenantController {
   })
   async createSpace(
     @Body() user: CreateTenantDtoSpace,
-  ): Promise<SuccessResponse<Tenant>> {
+  ){
     const tenantResp = await this.createEspaceTenantUseCase.execute(
       user.user,
       user.name,
