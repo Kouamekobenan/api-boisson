@@ -28,6 +28,7 @@ async function bootstrap() {
         'http://localhost:3000',
         'http://localhost:5173',
         'http://127.0.0.1:3000',
+        'http://127.0.0.1:3001',
         'https://api-boisson-production-bd26.up.railway.app',
         'https://depot-website-seven.vercel.app',
         /^https:\/\/.*\.vercel\.app$/,

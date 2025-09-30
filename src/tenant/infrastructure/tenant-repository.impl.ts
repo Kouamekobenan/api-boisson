@@ -6,14 +6,13 @@ import { CreateTenantDto } from '../application/dtos/create-tenant.dto';
 import { Tenant } from '../domain/entities/tenant.entity';
 import { UpdateTenantDto } from '../application/dtos/update-tenant';
 import { UserDto } from 'src/auth/users/application/dtos/user.dto';
-import { AuthService } from 'src/auth/services/auth.service';
+import { User } from 'src/auth/users/domain/entities/user.entity';
 @Injectable()
 export class TenantRepository implements ITenantRepository {
   private readonly logger = new Logger(TenantRepository.name);
   constructor(
     private readonly prisma: PrismaService,
     private readonly mapper: TenantMapper,
-    private readonly authService:AuthService
   ) {}
   async create(dto: CreateTenantDto): Promise<Tenant> {
     try {
@@ -70,35 +69,21 @@ export class TenantRepository implements ITenantRepository {
     });
     return tenants.map((item) => this.mapper.toEntity(item));
   }
-  async createEspace(
-    user: UserDto,
-    name: string,
-  ): Promise<{ data: Tenant; message: string; token: {} }> {
+  async createEspace(user: UserDto, name: string): Promise<Tenant> {
     return this.prisma.$transaction(async (tx) => {
-      const tenant = await tx.tenant.create({ data: { name } });
-
-      const createdUser = await tx.user.create({
+      const tenants = await tx.tenant.create({ data: { name } });
+      const users = await tx.user.create({
         data: {
           email: user.email,
-          password: user.password, // ⚠️ hash avant si ce n'est pas déjà fait
+          password: user.password,
           name: user.name,
           phone: user.phone,
           role: user.role,
-          tenant: { connect: { id: tenant.id } },
+          tenant: { connect: { id: tenants.id } },
         },
       });
+      return this.mapper.toEntity(tenants);
 
-      const token = await this.authService.generateToken({
-        userId: createdUser.id,
-        email: createdUser.email,
-        role: createdUser.role,
-      });
-
-      return {
-        data: this.mapper.toEntity(tenant), // ou directement tenant
-        message: 'Espace créé avec succès 🎉',
-        token,
-      };
-    });
+    }); 
   }
 }

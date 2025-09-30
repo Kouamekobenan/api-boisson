@@ -127,11 +127,11 @@ export class TenantController {
   })
   async createSpace(
     @Body() user: CreateTenantDtoSpace,
-  ){
+  ): Promise<SuccessResponse<Tenant>> {
     const tenantResp = await this.createEspaceTenantUseCase.execute(
       user.user,
       user.name,
     );
-    return tenantResp;
+    return ResponseHelper.success(tenantResp);
   }
 }

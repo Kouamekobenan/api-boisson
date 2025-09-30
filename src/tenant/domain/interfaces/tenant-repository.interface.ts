@@ -11,5 +11,5 @@ export interface ITenantRepository {
   findById(id: string): Promise<Tenant | null>;
   update(id: string, updateDto: UpdateTenantDto): Promise<Tenant>;
   findAll(): Promise<Tenant[]>
-  createEspace(user:UserDto, name:string):Promise<{data:Tenant, message:string, token:{}}>
+  createEspace(user:UserDto, name:string):Promise<Tenant>
 }

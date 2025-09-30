@@ -23,7 +23,7 @@ export class CreateEspaceTenantUseCase {
     private readonly tenantRepo: ITenantRepository,
     private readonly authService: AuthService,
   ) {}
-  async execute(userDto: UserDto, name: string){
+  async execute(userDto: UserDto, name: string): Promise<Tenant> {
     try {
       const hashpasword = await this.authService.hashPassword(userDto.password);
       const tenant = await this.tenantRepo.createEspace(
