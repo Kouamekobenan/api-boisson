@@ -9,6 +9,9 @@ import {
   ValidationPipe,
   Post,
   Body,
+  Req,
+  HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -217,7 +220,7 @@ export class UserController {
     const user = await this.findUserByIdUseCase.execute(userId);
     return user;
   }
-  @Post('subscription/:id')
+  @Post('push-subscription')
   @ApiOperation({
     summary: 'Mettre à jour la souscription push d’un utilisateur',
     description:
@@ -243,10 +246,11 @@ export class UserController {
     description: 'Utilisateur non trouvé',
   })
   async updatePushSubscription(
-    @Param('id') id: string,
+    @Req() req,
     @Body() subscription: PushSubscriptionDto,
   ): Promise<User | null> {
-    return this.addNotificationUseCase.execute(id, subscription);
+    const userId = req.user.id;
+    return this.addNotificationUseCase.execute(userId, subscription);
   }
   @Get('/subscription/:tenantId')
   @ApiOperation({
@@ -274,4 +278,37 @@ export class UserController {
   ): Promise<User | null> {
     return this.findManagerByTenantUseCase.execute(tenantId);
   }
+
+   @Public() // ✅ Correct: Cette route peut être publique
+  @Get('push/public-key')
+  @ApiOperation({
+    summary: 'Récupérer la clé publique VAPID pour les notifications push',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Clé publique VAPID',
+    schema: {
+      example: {
+        publicKey: 'BM...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Clé publique non configurée',
+  })
+  getPublicKey(): { publicKey: string } {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      throw new HttpException(
+        'VAPID_PUBLIC_KEY is not configured',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+
+    // ✅ CORRECTION: Retourner un objet structuré
+    return { publicKey };
+  }
+
 }

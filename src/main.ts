@@ -6,6 +6,7 @@ import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import helmet from 'helmet';
 import { configureWebPush } from './web-push.config';
+import * as webPush from 'web-push';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -21,7 +22,11 @@ async function bootstrap() {
     : configService.get<number>('PORT', 3000);
   const host = '0.0.0.0';
 
-  // ✅ Configuration CORS améliorée
+  webPush.setVapidDetails(
+    'mailto:kouamenelson47@gmail.com',
+    process.env.VAPID_PUBLIC_KEY ?? '',
+    process.env.VAPID_PRIVATE_KEY ?? '',
+  );
   app.enableCors({
     origin: (origin, callback) => {
       // Liste des domaines autorisés
