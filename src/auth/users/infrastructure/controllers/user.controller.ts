@@ -3,12 +3,12 @@ import {
   Delete,
   Get,
   Param,
-  Request,
   UseGuards,
-  NotFoundException,
   Query,
   UsePipes,
   ValidationPipe,
+  Post,
+  Body,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -17,6 +17,8 @@ import {
   ApiOkResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiParam,
+  ApiBody,
 } from '@nestjs/swagger';
 import { User } from '../../domain/entities/user.entity';
 import { FindAllUserUseCase } from '../../application/usecases/findAlluser.user.use-case';
@@ -31,6 +33,9 @@ import { FilterUserUseCase } from '../../application/usecases/filter-user.usecas
 import { FilterUserDto } from '../../application/dtos/filter-user.dto';
 import { UserRole } from '../../domain/enums/role.enum';
 import { PaginateUserQueryDto } from '../../application/dtos/paginateUserQuery.dto';
+import { AddNotificationUseCase } from '../../application/usecases/notifications-user.usecase';
+import { PushSubscriptionDto } from '../../application/dtos/subscrption.dto';
+import { FindManagerByTenantUseCase } from '../../application/usecases/find-managerby-tenant.usecase';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @ApiBearerAuth()
@@ -44,6 +49,8 @@ export class UserController {
     private readonly findUserByIdUseCase: FindUserByIdUseCase,
     private readonly paginateUserUseCase: PaginateUserUseCase,
     private readonly filterUserUseCase: FilterUserUseCase,
+    private readonly addNotificationUseCase: AddNotificationUseCase,
+    private readonly findManagerByTenantUseCase: FindManagerByTenantUseCase,
   ) {}
 
   @Public()
@@ -209,5 +216,62 @@ export class UserController {
     console.log('User ID:', userId);
     const user = await this.findUserByIdUseCase.execute(userId);
     return user;
+  }
+  @Post('subscription/:id')
+  @ApiOperation({
+    summary: 'Mettre à jour la souscription push d’un utilisateur',
+    description:
+      'Permet d’enregistrer ou mettre à jour la souscription Web Push (Push API) pour envoyer des notifications push à un utilisateur.',
+  })
+  @ApiParam({
+    name: 'id',
+    description: "ID de l'utilisateur",
+    type: String,
+    example: 'b123f9b0-4cd2-4e6c-99c9-ff45c91df231',
+  })
+  @ApiBody({
+    description: 'Données de souscription push envoyées par le navigateur',
+    type: PushSubscriptionDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Souscription push enregistrée avec succès',
+    type: User,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Utilisateur non trouvé',
+  })
+  async updatePushSubscription(
+    @Param('id') id: string,
+    @Body() subscription: PushSubscriptionDto,
+  ): Promise<User | null> {
+    return this.addNotificationUseCase.execute(id, subscription);
+  }
+  @Get('/subscription/:tenantId')
+  @ApiOperation({
+    summary: 'Trouver le manager associé à un tenant',
+    description:
+      "Cet endpoint permet de récupérer le manager associé à un tenant précis, notamment pour associer la souscription push à l'administrateur responsable.",
+  })
+  @ApiParam({
+    name: 'tenantId',
+    type: String,
+    description: 'ID du tenant',
+    example: 'a1b2c3d4-9876-4422-bbbb-123456789000',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Manager trouvé avec succès',
+    type: User,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Aucun manager trouvé pour ce tenant',
+  })
+  async findManagerByTenant(
+    @Param('tenantId') tenantId: string,
+  ): Promise<User | null> {
+    return this.findManagerByTenantUseCase.execute(tenantId);
   }
 }

@@ -8,6 +8,8 @@ import { DeleteUserUseCase } from './application/usecases/delete.user.use-case';
 import { FindUserByIdUseCase } from './application/usecases/find_user_by_id.use_case';
 import { PaginateUserUseCase } from './application/usecases/paginate-user.usecase';
 import { FilterUserUseCase } from './application/usecases/filter-user.usecase';
+import { AddNotificationUseCase } from './application/usecases/notifications-user.usecase';
+import { FindManagerByTenantUseCase } from './application/usecases/find-managerby-tenant.usecase';
 
 @Module({
   imports: [],
@@ -23,6 +25,8 @@ import { FilterUserUseCase } from './application/usecases/filter-user.usecase';
     FindUserByIdUseCase,
     PaginateUserUseCase,
     FilterUserUseCase,
+    AddNotificationUseCase,
+    FindManagerByTenantUseCase,
     {
       provide: 'IUserRepository',
       useClass: UserRepository,

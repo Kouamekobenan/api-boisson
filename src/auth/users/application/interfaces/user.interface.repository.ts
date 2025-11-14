@@ -2,6 +2,15 @@ import { User } from '../../domain/entities/user.entity';
 import { UserRole } from '../../domain/enums/role.enum';
 import { FilterUserDto } from '../dtos/filter-user.dto';
 import { UserDto } from '../dtos/user.dto';
+
+export type PushSubscriptionType = {
+  endpoint: string;
+  expirationTime?: number | null;
+  keys: {
+    p256dh: string;
+    auth: string;
+  };
+};
 export interface IUserRepository {
   createUser(dataUser: UserDto): Promise<User>;
   findByEmail(email: string): Promise<User | null>;
@@ -34,4 +43,8 @@ export interface IUserRepository {
     page: number;
   }>;
   findManagerByTenant(tenantId: string): Promise<User | null>;
+  updatePushSubscription(
+    userId:string,
+    subscription: PushSubscriptionType,
+  ): Promise<User | null>;
 }

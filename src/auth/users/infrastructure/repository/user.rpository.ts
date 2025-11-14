@@ -6,7 +6,10 @@ import {
   Logger,
   NotFoundException,
 } from '@nestjs/common';
-import { IUserRepository } from '../../application/interfaces/user.interface.repository';
+import {
+  IUserRepository,
+  PushSubscriptionType,
+} from '../../application/interfaces/user.interface.repository';
 import { PrismaService } from 'src/prisma/prisma.service';
 import { UserMapper } from '../../domain/mappers/user.mapper';
 import { UserDto } from '../../application/dtos/user.dto';
@@ -212,12 +215,26 @@ export class UserRepository implements IUserRepository {
     }
   }
   async findManagerByTenant(tenantId: string): Promise<User | null> {
-     const manager =await this.prisma.user.findFirst({
-      where:{tenantId, role:"MANAGER"}
-     })
-     if (!manager) {
-      throw new NotFoundException(`Manager does not exist`)
-     }
-     return this.mapper.toAplication(manager)
+    const manager = await this.prisma.user.findFirst({
+      where: { tenantId, role: 'MANAGER' },
+    });
+    if (!manager) {
+      throw new NotFoundException(`Manager does not exist`);
+    }
+    return this.mapper.toAplication(manager);
+  }
+  async updatePushSubscription(
+    userId: string,
+    subscription: PushSubscriptionType,
+  ): Promise<User | null> {
+    try {
+      const user = await this.prisma.user.update({
+        where: { id: userId },
+        data: { pushSubscription: subscription },
+      });
+      return this.mapper.toAplication(user);
+    } catch (error) {
+      throw new BadRequestException(`Failled to add keys to description`);
+    }
   }
 }
