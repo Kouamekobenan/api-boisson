@@ -15,10 +15,9 @@ import { UserRepository } from 'src/auth/users/infrastructure/repository/user.rp
 import { UserMapper } from 'src/auth/users/domain/mappers/user.mapper';
 import { AuthService } from 'src/auth/services/auth.service';
 import { JwtService } from '@nestjs/jwt';
-
 @Module({
   controllers: [TenantController],
-  imports: [UserModule],
+  imports: [UserModule, TenantModule],
   providers: [
     PrismaService,
     TenantMapper,

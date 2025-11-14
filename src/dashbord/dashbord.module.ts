@@ -23,6 +23,6 @@ import { GetSaleByDayUseCase } from './application/usecases/getSalesBy.usecases'
     GetSammaryUseCase,
     GetSaleByDayUseCase,
   ],
-  exports: [],
+  exports: [DashbordModule],
 })
 export class DashbordModule {}

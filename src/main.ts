@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { Logger } from '@nestjs/common';
 import { HttpExceptionFilter } from './common/exceptions/http.exception.filter';
 import helmet from 'helmet';
+import { configureWebPush } from './web-push.config';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule, {
@@ -13,7 +14,7 @@ async function bootstrap() {
         ? ['error', 'warn']
         : ['log', 'error', 'warn', 'debug', 'verbose'],
   });
-
+  configureWebPush();
   const configService = app.get(ConfigService);
   const port = process.env.PORT
     ? parseInt(process.env.PORT, 10)

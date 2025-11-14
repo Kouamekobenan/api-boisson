@@ -19,6 +19,7 @@ import { CustomerModule } from './customer/customer.module';
 import { CreditPaymentModule } from './creditPayment/creditPayment.module';
 import { TenantModule } from './tenant/tenant.module';
 import { DashbordModule } from './dashbord/dashbord.module';
+import { DailyReportModule } from './scheduler/daily-report.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { DashbordModule } from './dashbord/dashbord.module';
     CreditPaymentModule,
     TenantModule,
     DashbordModule,
+    DailyReportModule,
   ],
   controllers: [AppController],
   providers: [

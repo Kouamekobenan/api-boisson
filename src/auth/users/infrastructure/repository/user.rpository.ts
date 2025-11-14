@@ -211,4 +211,13 @@ export class UserRepository implements IUserRepository {
       });
     }
   }
+  async findManagerByTenant(tenantId: string): Promise<User | null> {
+     const manager =await this.prisma.user.findFirst({
+      where:{tenantId, role:"MANAGER"}
+     })
+     if (!manager) {
+      throw new NotFoundException(`Manager does not exist`)
+     }
+     return this.mapper.toAplication(manager)
+  }
 }

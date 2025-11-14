@@ -1,8 +1,6 @@
 import { DirectSale } from '../entities/directSale.entity';
 import {
   Prisma,
-  DirectSale as PrismaEntity,
-  DirectSaleItem as PrismaItem,
 } from '@prisma/client';
 import { DirectSaleItem } from '../entities/directSaleItem.entity';
 import { CreateDirectSaleDto } from 'src/directSale/application/dtos/directSale/create-directSale.dto';

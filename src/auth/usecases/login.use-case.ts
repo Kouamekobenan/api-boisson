@@ -10,7 +10,6 @@ export class LoginUserUseCase {
     private readonly userRepository: IUserRepository,
     private readonly authservice: AuthService,
   ) {}
-
   async execute(
     email: string,
     password: string,

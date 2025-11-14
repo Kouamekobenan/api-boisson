@@ -120,6 +120,9 @@ export class CustomerRepository implements ICustomerRepository {
     try {
       const customers = await this.prisma.customer.findMany({
         where: { tenantId },
+        include: {
+          sales: true,
+        },
         orderBy: { createdAt: 'desc' },
       });
 

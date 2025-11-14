@@ -1,5 +1,5 @@
 import { UserDto } from '../../application/dtos/user.dto';
-import { User } from '../entities/user.entity';
+import { PushSubscriptionType, User } from '../entities/user.entity';
 import { Prisma, User as UserPrisma } from '@prisma/client';
 import { UserRole as Role } from '../enums/role.enum';
 export class UserMapper {
@@ -11,9 +11,12 @@ export class UserMapper {
       phone: data.phone,
       role: data.role,
       tenant: { connect: { id: data.tenantId } },
+      // pushSubscription: data.pushSubscription,
     };
   }
-  toAplication(Userdata: UserPrisma & { tenant?: { name: string } | null }): User {
+  toAplication(
+    Userdata: UserPrisma & { tenant?: { name: string } | null },
+  ): User {
     return new User(
       Userdata.id,
       Userdata.email,
@@ -24,7 +27,8 @@ export class UserMapper {
       Userdata.createdAt,
       Userdata.updatedAt,
       Userdata.tenantId,
-      Userdata?.tenant?.name
+      Userdata.pushSubscription as PushSubscriptionType,
+      Userdata?.tenant?.name,
     );
   }
   toUpdateUser(userData: UserDto): any {

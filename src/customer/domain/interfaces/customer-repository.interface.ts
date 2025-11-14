@@ -2,7 +2,6 @@ import { CreateCustomerDto } from "src/customer/application/dtos/create-customer
 import { Customer } from "../entities/customer.entity"
 import { UpdateCustomerDto } from "src/customer/application/dtos/update-customer.dto";
 import { PaginatedResponseRepository } from "src/common/types/response-respository";
-
 export const CustomerRepositoryName='ICustomerRepository'
 export interface ICustomerRepository {
   create(dto: CreateCustomerDto): Promise<Customer>;
@@ -15,4 +14,5 @@ export interface ICustomerRepository {
     limit: number,
     page: number,
   ): Promise<PaginatedResponseRepository<Customer>>;
+
 }
