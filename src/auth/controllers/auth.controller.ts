@@ -1,20 +1,4 @@
-import { query, Request as request } from 'express';
-
-interface AuthenticatedRequest extends request {
-  user: { id: string; email: string; role: string };
-}
-
-import {
-  Controller,
-  Post,
-  Body,
-  Request,
-  Get,
-  UseGuards,
-  Req,
-  Query,
-  NotFoundException,
-} from '@nestjs/common';
+import { Controller, Post, Body, Get, UseGuards, Req } from '@nestjs/common';
 import { RegisterUserUseCase } from '../usecases/register.user.use-case';
 import { LoginUserUseCase } from '../usecases/login.use-case';
 import { UserDto } from '../users/application/dtos/user.dto';
@@ -25,12 +9,10 @@ import {
   ApiOperation,
   ApiResponse,
   ApiBody,
-  ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { User } from '../users/domain/entities/user.entity';
 import { AuthMeUseCase } from '../usecases/authme.usecase';
-import { CurrentUser } from 'src/core/decorators/user.decorator';
 import { JwtAuthGuard } from '../guards/jwt-auth.guard';
 import { RolesGuard } from '../guards/role.guard';
 

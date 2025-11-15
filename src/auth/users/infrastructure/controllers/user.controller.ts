@@ -12,6 +12,8 @@ import {
   Req,
   HttpStatus,
   HttpException,
+  Put,
+  Patch,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -39,10 +41,10 @@ import { PaginateUserQueryDto } from '../../application/dtos/paginateUserQuery.d
 import { AddNotificationUseCase } from '../../application/usecases/notifications-user.usecase';
 import { PushSubscriptionDto } from '../../application/dtos/subscrption.dto';
 import { FindManagerByTenantUseCase } from '../../application/usecases/find-managerby-tenant.usecase';
-
+import { CurrentUser } from 'src/common/curent-user.decorator';
+@ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-@ApiBearerAuth()
-@Public()
+// @Public()
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -220,17 +222,14 @@ export class UserController {
     const user = await this.findUserByIdUseCase.execute(userId);
     return user;
   }
-  @Post('push-subscription')
+
+  @Patch('push-subscription')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
   @ApiOperation({
     summary: 'Mettre à jour la souscription push d’un utilisateur',
     description:
       'Permet d’enregistrer ou mettre à jour la souscription Web Push (Push API) pour envoyer des notifications push à un utilisateur.',
-  })
-  @ApiParam({
-    name: 'id',
-    description: "ID de l'utilisateur",
-    type: String,
-    example: 'b123f9b0-4cd2-4e6c-99c9-ff45c91df231',
   })
   @ApiBody({
     description: 'Données de souscription push envoyées par le navigateur',
@@ -246,10 +245,11 @@ export class UserController {
     description: 'Utilisateur non trouvé',
   })
   async updatePushSubscription(
-    @Req() req,
+    @Req() query: any,
     @Body() subscription: PushSubscriptionDto,
   ): Promise<User | null> {
-    const userId = req.user.id;
+    const userId = query.user.userId;
+    console.log('userID', userId);
     return this.addNotificationUseCase.execute(userId, subscription);
   }
   @Get('/subscription/:tenantId')
@@ -279,7 +279,7 @@ export class UserController {
     return this.findManagerByTenantUseCase.execute(tenantId);
   }
 
-   @Public() // ✅ Correct: Cette route peut être publique
+  @Public() // ✅ Correct: Cette route peut être publique
   @Get('push/public-key')
   @ApiOperation({
     summary: 'Récupérer la clé publique VAPID pour les notifications push',
@@ -306,9 +306,6 @@ export class UserController {
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }
-
-    // ✅ CORRECTION: Retourner un objet structuré
     return { publicKey };
   }
-
 }
