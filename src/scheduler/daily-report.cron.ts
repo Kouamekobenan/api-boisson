@@ -22,7 +22,8 @@ import {
 export class StartDailyReportJob implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(StartDailyReportJob.name);
   private readonly cronJobs: Map<string, any> = new Map();
-  private readonly CRON_SCHEDULE = '0 19 * * *';
+  // private readonly CRON_SCHEDULE = '0 19 * * *';
+  private readonly CRON_SCHEDULE = '30 2 * * *';
 
   constructor(
     @Inject(DashbordRepositoryName)
@@ -99,7 +100,7 @@ export class StartDailyReportJob implements OnModuleInit, OnModuleDestroy {
       async () => {
         await this.executeDailyReport(tenantId);
       },
-      { timezone: 'Europe/Paris' },
+      { timezone: 'Africa/Abidjan' },
     );
 
     this.cronJobs.set(tenantId, {
