@@ -7,13 +7,13 @@ import {
   Query,
   UsePipes,
   ValidationPipe,
-  Post,
   Body,
   Req,
   HttpStatus,
   HttpException,
   Put,
   Patch,
+  HttpCode,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -41,10 +41,11 @@ import { PaginateUserQueryDto } from '../../application/dtos/paginateUserQuery.d
 import { AddNotificationUseCase } from '../../application/usecases/notifications-user.usecase';
 import { PushSubscriptionDto } from '../../application/dtos/subscrption.dto';
 import { FindManagerByTenantUseCase } from '../../application/usecases/find-managerby-tenant.usecase';
-import { CurrentUser } from 'src/common/curent-user.decorator';
+import { FindAllManagerUseCase } from '../../application/usecases/find-manager.usecase';
+import { Roles } from 'src/auth/decorators/roles.decorators';
+
 @ApiBearerAuth('access-token')
 @UseGuards(JwtAuthGuard, RolesGuard)
-// @Public()
 @ApiTags('users')
 @Controller('users')
 export class UserController {
@@ -56,31 +57,80 @@ export class UserController {
     private readonly filterUserUseCase: FilterUserUseCase,
     private readonly addNotificationUseCase: AddNotificationUseCase,
     private readonly findManagerByTenantUseCase: FindManagerByTenantUseCase,
+    private readonly findAllManagerUseCase: FindAllManagerUseCase,
   ) {}
 
-  @Public()
-  @Get(':tenantId')
-  @ApiOperation({ summary: 'Récupérer tous les utilisateurs' })
-  @ApiOkResponse({
-    description: 'Liste des utilisateurs récupérée avec succès',
+  // ==========================================
+  // 1️⃣ ROUTES STATIQUES (sans paramètres dynamiques)
+  // ==========================================
+
+  @Get('manager')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.DELIVERY_PERSON)
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Get all managers',
+    description: 'Retrieve all users with MANAGER role',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'List of managers retrieved successfully',
     type: [User],
   })
-  @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
-  async getAllUsers(@Param('tenantId') tenantId: string): Promise<User[]> {
-    return await this.findAllUserUseCase.execute(tenantId);
+  @ApiResponse({
+    status: 401,
+    description: 'Unauthorized - Invalid or missing token',
+  })
+  @ApiResponse({
+    status: 403,
+    description: 'Forbidden - Insufficient permissions',
+  })
+  @ApiResponse({
+    status: 409,
+    description: 'Conflict - Database constraint violation',
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Internal server error',
+  })
+  async findAllManagers(): Promise<User[]> {
+    return await this.findAllManagerUseCase.execute();
   }
+
   @Public()
-  @Delete(':id')
-  @ApiOperation({ summary: 'Supprimer un utilisateurs' })
-  async deleteUser(@Param('id') userId: string): Promise<boolean> {
-    try {
-      this.deleteUserUseCase.execute(userId);
-      return true;
-    } catch {
-      console.error;
-      return false;
+  @Get('push/public-key')
+  @ApiOperation({
+    summary: 'Récupérer la clé publique VAPID pour les notifications push',
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Clé publique VAPID',
+    schema: {
+      example: {
+        publicKey: 'BM...',
+      },
+    },
+  })
+  @ApiResponse({
+    status: 500,
+    description: 'Clé publique non configurée',
+  })
+  getPublicKey(): { publicKey: string } {
+    const publicKey = process.env.VAPID_PUBLIC_KEY;
+
+    if (!publicKey) {
+      throw new HttpException(
+        'VAPID_PUBLIC_KEY is not configured',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
     }
+    return { publicKey };
   }
+
+  // ==========================================
+  // 2️⃣ ROUTES AVEC SEGMENTS FIXES + PARAMÈTRES
+  // ==========================================
+
   @Get('filter/:tenantId')
   @ApiOperation({ summary: 'Filtrer les utilisateurs' })
   @ApiQuery({
@@ -128,6 +178,7 @@ export class UserController {
       paginate.page,
     );
   }
+
   @Get('paginate/:tenantId')
   @UsePipes(new ValidationPipe({ transform: true }))
   @ApiOperation({
@@ -167,7 +218,7 @@ export class UserController {
     name: 'role',
     required: false,
     enum: UserRole,
-    description: 'Rôle de l’utilisateur',
+    description: 'Rôle de l\'utilisateur',
   })
   @ApiResponse({
     status: 200,
@@ -202,57 +253,8 @@ export class UserController {
       role,
     );
   }
-  @Public()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Get('tenant/:id')
-  @ApiOperation({
-    summary: 'Récupérer le user par son ID',
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Utilisateur récupéré avec succès',
-    type: User,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Utilisateur non trouvé',
-  })
-  async getUserById(@Param('id') userId: string): Promise<User> {
-    console.log('User ID:', userId);
-    const user = await this.findUserByIdUseCase.execute(userId);
-    return user;
-  }
 
-  @Patch('push-subscription')
-  @UseGuards(JwtAuthGuard)
-  @ApiBearerAuth('access-token')
-  @ApiOperation({
-    summary: 'Mettre à jour la souscription push d’un utilisateur',
-    description:
-      'Permet d’enregistrer ou mettre à jour la souscription Web Push (Push API) pour envoyer des notifications push à un utilisateur.',
-  })
-  @ApiBody({
-    description: 'Données de souscription push envoyées par le navigateur',
-    type: PushSubscriptionDto,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Souscription push enregistrée avec succès',
-    type: User,
-  })
-  @ApiResponse({
-    status: 404,
-    description: 'Utilisateur non trouvé',
-  })
-  async updatePushSubscription(
-    @Req() query: any,
-    @Body() subscription: PushSubscriptionDto,
-  ): Promise<User | null> {
-    const userId = query.user.userId;
-    console.log('userID', userId);
-    return this.addNotificationUseCase.execute(userId, subscription);
-  }
-  @Get('/subscription/:tenantId')
+  @Get('subscription/:tenantId')
   @ApiOperation({
     summary: 'Trouver le manager associé à un tenant',
     description:
@@ -279,33 +281,87 @@ export class UserController {
     return this.findManagerByTenantUseCase.execute(tenantId);
   }
 
-  @Public() // ✅ Correct: Cette route peut être publique
-  @Get('push/public-key')
+  @Public()
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Get('tenant/:id')
   @ApiOperation({
-    summary: 'Récupérer la clé publique VAPID pour les notifications push',
+    summary: 'Récupérer le user par son ID',
   })
   @ApiResponse({
     status: 200,
-    description: 'Clé publique VAPID',
-    schema: {
-      example: {
-        publicKey: 'BM...',
-      },
-    },
+    description: 'Utilisateur récupéré avec succès',
+    type: User,
   })
   @ApiResponse({
-    status: 500,
-    description: 'Clé publique non configurée',
+    status: 404,
+    description: 'Utilisateur non trouvé',
   })
-  getPublicKey(): { publicKey: string } {
-    const publicKey = process.env.VAPID_PUBLIC_KEY;
+  async getUserById(@Param('id') userId: string): Promise<User> {
+    console.log('User ID:', userId);
+    const user = await this.findUserByIdUseCase.execute(userId);
+    return user;
+  }
 
-    if (!publicKey) {
-      throw new HttpException(
-        'VAPID_PUBLIC_KEY is not configured',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
+  // ==========================================
+  // 3️⃣ ROUTES DYNAMIQUES (paramètres seuls) - EN DERNIER !
+  // ==========================================
+
+  @Public()
+  @Get(':tenantId')
+  @ApiOperation({ summary: 'Récupérer tous les utilisateurs' })
+  @ApiOkResponse({
+    description: 'Liste des utilisateurs récupérée avec succès',
+    type: [User],
+  })
+  @ApiResponse({ status: 500, description: 'Erreur interne du serveur' })
+  async getAllUsers(@Param('tenantId') tenantId: string): Promise<User[]> {
+    return await this.findAllUserUseCase.execute(tenantId);
+  }
+
+  @Public()
+  @Delete(':id')
+  @ApiOperation({ summary: 'Supprimer un utilisateurs' })
+  async deleteUser(@Param('id') userId: string): Promise<boolean> {
+    try {
+      this.deleteUserUseCase.execute(userId);
+      return true;
+    } catch {
+      console.error;
+      return false;
     }
-    return { publicKey };
+  }
+
+  // ==========================================
+  // 4️⃣ AUTRES MÉTHODES HTTP (PATCH, PUT, POST...)
+  // ==========================================
+
+  @Patch('push-subscription')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth('access-token')
+  @ApiOperation({
+    summary: 'Mettre à jour la souscription push d\'un utilisateur',
+    description:
+      'Permet d\'enregistrer ou mettre à jour la souscription Web Push (Push API) pour envoyer des notifications push à un utilisateur.',
+  })
+  @ApiBody({
+    description: 'Données de souscription push envoyées par le navigateur',
+    type: PushSubscriptionDto,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Souscription push enregistrée avec succès',
+    type: User,
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Utilisateur non trouvé',
+  })
+  async updatePushSubscription(
+    @Req() query: any,
+    @Body() subscription: PushSubscriptionDto,
+  ): Promise<User | null> {
+    const userId = query.user.userId;
+    console.log('userID', userId);
+    return this.addNotificationUseCase.execute(userId, subscription);
   }
 }

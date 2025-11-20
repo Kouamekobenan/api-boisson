@@ -44,7 +44,8 @@ export interface IUserRepository {
   }>;
   findManagerByTenant(tenantId: string): Promise<User | null>;
   updatePushSubscription(
-    userId:string,
+    userId: string,
     subscription: PushSubscriptionType,
   ): Promise<User | null>;
+  findAllManager(): Promise<User[]>;
 }

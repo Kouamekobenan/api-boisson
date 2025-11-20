@@ -1,6 +1,7 @@
 import {
   BadGatewayException,
   BadRequestException,
+  ConflictException,
   Injectable,
   InternalServerErrorException,
   Logger,
@@ -235,6 +236,27 @@ export class UserRepository implements IUserRepository {
       return this.mapper.toAplication(user);
     } catch (error) {
       throw new BadRequestException(`Failled to add keys to description`);
+    }
+  }
+  async findAllManager(): Promise<User[]> {
+    try {
+      const managers = await this.prisma.user.findMany({
+        where: { role: "MANAGER" },
+      });
+      return managers.map((user) => this.mapper.toAplication(user));
+    } catch (error) {
+      this.logger.error('Failed to retrieve all managers', {
+        error: error.message,
+        stack: error.stack,
+      });
+      if (error.code === 'P2002') {
+        throw new ConflictException('Database constraint violation');
+      }
+
+      throw new InternalServerErrorException(
+        'Failed to retrieve all managers. Please try again later.',
+        { cause: error },
+      );
     }
   }
 }

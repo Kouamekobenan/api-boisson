@@ -10,6 +10,7 @@ import { PaginateUserUseCase } from './application/usecases/paginate-user.usecas
 import { FilterUserUseCase } from './application/usecases/filter-user.usecase';
 import { AddNotificationUseCase } from './application/usecases/notifications-user.usecase';
 import { FindManagerByTenantUseCase } from './application/usecases/find-managerby-tenant.usecase';
+import { FindAllManagerUseCase } from './application/usecases/find-manager.usecase';
 
 @Module({
   imports: [],
@@ -27,6 +28,7 @@ import { FindManagerByTenantUseCase } from './application/usecases/find-managerb
     FilterUserUseCase,
     AddNotificationUseCase,
     FindManagerByTenantUseCase,
+    FindAllManagerUseCase,
     {
       provide: 'IUserRepository',
       useClass: UserRepository,

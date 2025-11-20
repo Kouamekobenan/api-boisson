@@ -146,7 +146,6 @@ export class StartDailyReportJob implements OnModuleInit, OnModuleDestroy {
       );
     }
   }
-
   // API publique pour gestion dynamique
   public async addTenantJob(tenantId: string): Promise<void> {
     if (!tenantId) {
