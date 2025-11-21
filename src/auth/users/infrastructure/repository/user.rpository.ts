@@ -241,7 +241,8 @@ export class UserRepository implements IUserRepository {
   async findAllManager(): Promise<User[]> {
     try {
       const managers = await this.prisma.user.findMany({
-        where: { role: "MANAGER" },
+        where: { role: 'MANAGER' },
+        include: { tenant: { select: { name: true } } },
       });
       return managers.map((user) => this.mapper.toAplication(user));
     } catch (error) {
